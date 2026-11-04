@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reelty · Re-render</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #000;
+      --muted: #a3a3a3;
+      --faint: #bfbfbf;
+      --body: #4e4e4e;
+      --line: #ededed;
+      --purple: #a755f7;
+      --grad: linear-gradient(180deg, #1c201d 0%, #000 100%);
+      --pill-shadow: inset 0 2px 5.9px rgba(255, 255, 255, 0.42);
+      --pop-shadow: 0 46px 13px rgba(0,0,0,0), 0 30px 12px rgba(0,0,0,.01), 0 17px 10px rgba(0,0,0,.05), 0 7px 7px rgba(0,0,0,.09), 0 2px 4px rgba(0,0,0,.1);
+      --tip-drop: drop-shadow(0 12px 8px rgba(16,24,40,.08)) drop-shadow(0 4px 3px rgba(16,24,40,.03));
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-io: cubic-bezier(0.77, 0, 0.175, 1);
+      --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+      --spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; overflow: hidden; background: #fbfbfb; color: var(--ink);
+      font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    img { display: block; }
+    button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+    svg { display: block; }
+    :focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+
+    /* =====================================================================
+       Dashboard behind (dimmed by the scrim)
+       ===================================================================== */
+    .d-wrap { width: min(1208.889px, 100% - 71px); margin: 21.33px auto 0; display: flex; flex-direction: column; gap: 21px; }
+    .d-card { background: #fff; border-radius: 17.778px; }
+    .d-nav, .d-bar { display: flex; align-items: center; justify-content: space-between; padding: 14.222px 14.222px 14.222px 28.444px; }
+    .d-logo { width: 110.38px; height: 28.444px; }
+    .d-ava { padding: 3.556px; border: 0.889px solid #f0f0f0; border-radius: 999px; background: #fdfdfd; }
+    .d-ava img { width: 37.333px; height: 37.333px; border-radius: 50%; object-fit: cover; }
+    .ring40 { position: relative; width: 44.444px; height: 44.444px; }
+    .ring40 .r1, .ring40 .r3 { position: absolute; inset: 0; transform: rotate(-90deg); }
+    .ring40 .r1 img { width: 100%; height: 100%; }
+    .ring40 .r2 { position: absolute; left: 6.67px; top: 6.67px; width: 31.111px; height: 31.111px; transform: rotate(-90deg); }
+    .ring40 .r3 > div { position: absolute; bottom: 0; left: 12.6%; right: 0.49%; top: 50%; }
+    .ring40 .r3 img { width: 100%; height: 100%; }
+    .ring40 span { position: absolute; left: 11.11px; top: 15.11px; font-size: 10.667px; line-height: 14.222px; letter-spacing: -0.2133px; color: #00132b; }
+    .d-buy { display: flex; align-items: center; gap: 7.111px; padding: 12.444px 21.333px; border-radius: 999px; background: var(--grad); color: #fff; font-size: 14.222px; line-height: 17.778px; box-shadow: inset 0 -1.778px 5.244px rgba(255,255,255,.42), inset 0 1.778px 5.244px rgba(255,255,255,.42); }
+    .d-buy img { width: 17.778px; height: 17.778px; }
+    .d-up { position: relative; height: 254.222px; }
+    .d-drop { position: absolute; left: 50%; top: 21.34px; transform: translateX(-50%); width: calc(100% - 42.67px); height: 216.889px; border: 1.333px dashed #e8e8e8; border-radius: 14.222px; display: flex; flex-direction: column; align-items: center; padding-top: 27.11px; gap: 21.333px; }
+    .d-file { position: relative; width: 35.556px; height: 35.556px; }
+    .d-file img { position: absolute; inset: -2.5% -5% -15% -5%; width: 110%; height: 117.5%; }
+    .d-drop .t1 { font-size: 17.778px; line-height: 21.333px; color: #00132b; margin: 0; text-align: center; }
+    .d-drop .t2 { font-size: 14.222px; line-height: 17.778px; color: var(--muted); margin: 7.111px 0 0; text-align: center; }
+    .d-browse { display: flex; align-items: center; gap: 7.111px; padding: 8.889px 14.222px; border: 0.889px solid var(--muted); border-radius: 999px; color: var(--muted); font-size: 14.222px; line-height: 17.778px; }
+    .d-browse img { width: 17.778px; height: 17.778px; }
+    .d-recent { position: relative; height: 434.667px; border-radius: 14.222px; padding: 21.33px; }
+    .d-recent h2 { margin: 0; font-weight: 500; font-size: 17.778px; line-height: 21.333px; color: #101828; }
+    .d-list { display: flex; gap: 21.33px; margin-top: 21.34px; }
+    .d-li { width: 275.556px; flex: none; background: #fbfbfb; border: 0.889px solid #f8f8f8; border-radius: 21.333px; padding: 10.667px 7.111px 17.778px; display: flex; flex-direction: column; gap: 17.778px; overflow: hidden; }
+    .d-li .dots { display: flex; justify-content: flex-end; padding: 0 10.667px; margin-bottom: -7.111px; }
+    .d-li .dots img { width: 21.333px; height: 21.333px; }
+    .d-li .ph { position: relative; height: 253.333px; border-radius: 16px; overflow: hidden; background: #fff; }
+    .d-li .ph img { position: absolute; max-width: none; }
+    .d-li .ad { display: flex; gap: 3.556px; padding: 0 10.667px; font-size: 12.444px; line-height: 17.778px; letter-spacing: -0.1867px; color: #00132b; }
+    .d-li .ad img { width: 17.778px; height: 17.778px; flex: none; }
+    .d-li.open { cursor: pointer; }
+
+    .base { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #fbfbfb; }
+    .scrim.off { opacity: 0; pointer-events: none; }
+    .scrim { position: fixed; inset: 0; background: rgba(51, 51, 51, 0.6); -webkit-backdrop-filter: blur(1.778px); backdrop-filter: blur(1.778px); z-index: 10; transition: opacity .3s var(--ease-out); }
+
+    /* =====================================================================
+       Re-render modal (1248 × 800, scaled to fit)
+       ===================================================================== */
+    .modal {
+      position: fixed; inset: 50px; z-index: 20; display: flex; flex-direction: column;
+      border-radius: 16px; background: #fbfbfb; overflow: clip;
+      transition: opacity .32s var(--ease-out);
+    }
+    @media (max-width: 700px) { .modal { inset: 16px; } }
+    .modal.enter { opacity: 0; transform: translateY(12px) scale(.985); }
+    .modal.ready { transition: opacity .32s var(--ease-out), transform .42s var(--ease-out); }
+    .modal.closed { opacity: 0; pointer-events: none; transform: translateY(10px) scale(.98); transition: opacity .2s var(--ease-out), transform .2s var(--ease-out); }
+
+    /* header: section switcher */
+    .m-head { flex: none; height: 80px; padding: 16px 32px; display: flex; align-items: center; }
+    .htabs { position: relative; display: flex; height: 48px; max-width: 100%; padding: 3px 4px; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; scrollbar-width: none; }
+    .htabs::-webkit-scrollbar { display: none; }
+    .htab { white-space: nowrap; flex: none; }
+    .hind { position: absolute; left: 0; top: 3px; height: 40px; width: var(--iw, 0); border-radius: 8px; background: var(--grad); box-shadow: var(--pill-shadow); transform: translateX(var(--ix, 0)); transition: transform .32s var(--ease-io), width .32s var(--ease-io); }
+    .hind.noanim { transition: none; }
+    .htab { position: relative; z-index: 1; display: flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px; font-size: 16px; line-height: 20px; color: var(--muted); transition: color .2s var(--ease-out); }
+    .htab img, .htab svg { width: 20px; height: 20px; transition: filter .15s ease; }
+    .htab.on { color: #fff; cursor: default; }
+    @media (hover: hover) and (pointer: fine) {
+      .htab:not(.on):hover { color: #6f6f6f; }
+      .htab:not(.on):hover img { filter: brightness(.7); }
+    }
+
+    /* photo grid */
+    /* Figma strokes take no layout space: the frame line is an inset shadow */
+    .m-body { position: relative; flex: 1; min-height: 0; background: #fff; box-shadow: inset 0 0 0 1px #f6f6f6; border-radius: 24px; overflow: hidden; }
+    /* columns grow with the screen; every clip keeps the design's 220.8 × 392 shape */
+    .m-grid { height: 100%; padding: 20px 32px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; align-content: start; overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; }
+    .m-grid::-webkit-scrollbar { display: none; }
+    /* thin thumb drawn like the design (5 × 80, #e9e9e9) */
+    .sbar { position: absolute; right: 3px; top: 30px; width: 5px; height: 80px; border-radius: 20px; background: #e9e9e9; z-index: 5; pointer-events: none; transform: translateY(var(--sy, 0)); }
+
+    .cell { position: relative; aspect-ratio: 220.8 / 392; border-radius: 9.536px; isolation: isolate; }
+    .cell:hover, .cell:has(:focus-visible) { z-index: 6; }
+    .card { position: relative; width: 100%; height: 100%; border-radius: 9.536px; overflow: hidden; background: #f4f4f4; cursor: pointer; container-type: inline-size; }
+    .card .ph { position: absolute; max-width: none; pointer-events: none; transition: opacity .3s var(--ease-out), transform .5s var(--ease-out); }
+    .chk { position: absolute; left: 20px; top: 20px; width: 32px; height: 32px; border-radius: 9px; background: #fff; border: 1px solid var(--line); box-shadow: 0 1px 1px rgba(0,0,0,.1); z-index: 2;
+      transition: background-color .16s var(--ease-out), border-color .16s var(--ease-out), box-shadow .16s var(--ease-out), transform .12s var(--ease-out); }
+    /* selected: the usage purple, soft top highlight, thick rounded tick that draws itself in */
+    .chk::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; background: linear-gradient(180deg, #a565ff 0%, #8e2df6 100%); opacity: 0; transition: opacity .16s var(--ease-out); }
+    .chk svg { position: absolute; inset: -1px; width: 32px; height: 32px; }
+    .chk svg path { stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset .12s var(--ease-out); }
+    .chk.on { border-color: transparent; box-shadow: inset 0 1.5px 2px rgba(255,255,255,.28), inset 0 -1px 2px rgba(64,0,140,.18), 0 2px 6px rgba(142,45,246,.28); }
+    .chk.on::before { opacity: 1; }
+    .chk.on svg path { stroke-dashoffset: 0; transition: stroke-dashoffset .26s var(--ease-out) .04s; }
+    .card:active .chk { transform: scale(.94); }
+    /* selected: hovering the tick says what the clip will be re-rendered with (above it, clear of the effect thumbnail) */
+    .ctip { position: absolute; left: 16px; bottom: calc(100% - 17px); z-index: 5; display: flex; flex-direction: column-reverse; align-items: flex-start; opacity: 0; transform: translateY(3px); pointer-events: none;
+      filter: var(--tip-drop); transition: opacity .15s var(--ease-out), transform .15s var(--ease-out); }
+    .ctip > img { width: 57px; height: 6px; margin: -1px 0 0 -8.5px; transform: rotate(180deg); }
+    .ctip b { font-weight: 400; padding: 8px 10px; background: #fff; border: 1px solid #f5f5f5; border-radius: 10px; font-size: 12px; line-height: 14px; color: #000; white-space: nowrap; }
+    @media (hover: hover) and (pointer: fine) { .modal:not([data-view="swap"]) .cell.sel:has(.chk:hover) .ctip { opacity: 1; transform: none; transition-delay: .08s; } }
+
+    /* current effect thumbnail + its name on hover */
+    .badge { display: block; position: absolute; right: 20px; top: 20px; z-index: 4; padding: 3px; background: #fff; border: 1px solid #f8f8f8; border-radius: 12px; box-shadow: var(--pop-shadow); cursor: pointer;
+      opacity: 0; transform: scale(.8); transform-origin: 100% 0; pointer-events: none; transition: opacity .2s var(--ease-out), transform .38s var(--spring); }
+    .badge.on { opacity: 1; transform: none; pointer-events: auto; }
+    .badge.pop { animation: bpop .5s var(--spring); }
+    @keyframes bpop { 0% { transform: scale(.82); } 100% { transform: none; } }
+    .bimg { display: block; position: relative; width: 60px; height: 60px; border-radius: 9px; overflow: hidden; border: 0.811px solid #f8f8f8; background: #fdfdfd; box-shadow: 0 .811px .811px rgba(0,0,0,.1), 0 .811px .811px rgba(0,0,0,.1); }
+    .bimg > img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: none; width: 100%; height: 100%; object-fit: cover; }
+    /* camera-only badge: the clip's own photo, darkened, with a camera mark */
+    .bimg .cam { position: absolute; inset: 0; display: none; place-items: center; background: rgba(0,0,0,.5); -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px); }
+    .bimg .cam img { grid-area: 1 / 1; width: 24px; height: 24px; transition: opacity .16s var(--ease-out), transform .2s var(--ease-out); }
+    .bimg .cam .ci2 { opacity: 0; transform: scale(.85); }
+    /* a chosen move (Slide Left…) shows its own arrow instead of the camera */
+    .bimg .cam .ci3 { grid-area: 1 / 1; display: none; width: 24px; height: 24px; color: #fff; }
+    .bimg .cam .ci3 svg { width: 24px; height: 24px; }
+    .badge.move .cam .ci1, .badge.move .cam .ci2 { display: none; }
+    .badge.move .cam .ci3 { display: block; }
+    /* hover: the arrow acts out its move (Auto swaps to the video camera instead) */
+    @keyframes mv-l { 0%, 100% { transform: none; } 50% { transform: translateX(-4px); } }
+    @keyframes mv-r { 0%, 100% { transform: none; } 50% { transform: translateX(4px); } }
+    @keyframes mv-in { 0%, 100% { transform: none; } 50% { transform: scale(1.22); } }
+    @keyframes mv-ol { 0%, 100% { transform: none; } 50% { transform: rotate(-28deg); } }
+    @keyframes mv-or { 0%, 100% { transform: none; } 50% { transform: rotate(28deg); } }
+    @media (hover: hover) and (pointer: fine) {
+      .badge.move:hover .ci3 svg { animation: .9s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
+      .badge[data-move="cam-slide-l"]:hover .ci3 svg { animation-name: mv-l; }
+      .badge[data-move="cam-slide-r"]:hover .ci3 svg { animation-name: mv-r; }
+      .badge[data-move="cam-push"]:hover .ci3 svg { animation-name: mv-in; }
+      .badge[data-move="cam-orbit-l"]:hover .ci3 svg { animation-name: mv-ol; }
+      .badge[data-move="cam-orbit-r"]:hover .ci3 svg { animation-name: mv-or; }
+    }
+    @media (prefers-reduced-motion: reduce) { .badge.move .ci3 svg { animation: none !important; } }
+    .badge.camonly .cam { display: grid; }
+    /* auto camera: still camera at rest, video camera on hover */
+    @media (hover: hover) and (pointer: fine) {
+      .badge.auto:hover .cam .ci1 { opacity: 0; transform: scale(.85); }
+      .badge.auto:hover .cam .ci2 { opacity: 1; transform: none; }
+    }
+    .badge.auto:focus-visible .cam .ci1 { opacity: 0; }
+    .badge.auto:focus-visible .cam .ci2 { opacity: 1; transform: none; }
+    .btip { position: absolute; left: 50%; top: calc(100% + 3px); display: flex; flex-direction: column; align-items: center; opacity: 0; transform: translate(-50%, -3px); pointer-events: none; filter: var(--tip-drop); transition: opacity .15s var(--ease-out), transform .15s var(--ease-out); }
+    .btip > img { width: 57px; height: 6px; margin-bottom: -1px; }
+    .btip b { display: flex; align-items: center; gap: 4px; font-weight: 400; padding: 8px 10px; background: #fff; border: 1px solid #f5f5f5; border-radius: 10px; font-size: 12px; line-height: 14px; color: #000; white-space: nowrap; }
+    .btip b img, .btip b svg { width: 14px; height: 14px; flex: none; }
+    .btip b img.k { filter: brightness(0); }
+    @media (hover: hover) and (pointer: fine) { .badge:hover .btip { opacity: 1; transform: translate(-50%, 0); transition-delay: .08s; } }
+    .badge:focus-visible .btip { opacity: 1; transform: translate(-50%, 0); }
+
+    /* hover toolbar (every photo can be edited) */
+    .tbar-sw { position: absolute; left: 50%; bottom: 20px; z-index: 3; opacity: 0; transform: translate(-50%, 8px) scale(.96); transform-origin: 50% 100%; pointer-events: none; transition: opacity .18s var(--ease-out), transform .22s var(--ease-out); }
+    .tbar { display: flex; padding: 3px; background: #fff; border: 1px solid #f8f8f8; border-radius: 12px; box-shadow: var(--pop-shadow); }
+    .tb { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 10px; color: var(--faint); transition: background .14s ease, border-color .14s ease, box-shadow .14s ease, color .14s ease; }
+    .tb svg { width: 16px; height: 16px; }
+    .tb-undo { max-width: 0; opacity: 0; pointer-events: none; border-width: 0; transition: max-width .24s var(--ease-out), opacity .16s ease, background .14s ease, border-color .14s ease, box-shadow .14s ease, color .14s ease; }
+    .modal:not([data-view="swap"]) .cell.dirty .tb-undo, .modal[data-view="swap"] .cell.sdirty .tb-undo { max-width: 36px; opacity: 1; pointer-events: auto; border-width: 1px; }
+    .tb:hover, .tb:focus-visible { background: #fdfdfd; border-color: #f8f8f8; box-shadow: 0 1px 1px rgba(0,0,0,.1), 0 1px 1px rgba(0,0,0,.1); color: #17191b; }
+    .ttip { position: absolute; left: 50%; bottom: calc(100% + 6px); display: flex; flex-direction: column; align-items: center; opacity: 0; transform: translate(-50%, 3px); pointer-events: none; filter: var(--tip-drop); transition: opacity .15s var(--ease-out), transform .15s var(--ease-out); }
+    .ttip b { font-weight: 400; padding: 8px 10px; background: #fff; border: 1px solid #f5f5f5; border-radius: 10px; font-size: 12px; line-height: 14px; color: #000; white-space: nowrap; }
+    .ttip img { width: 57px; height: 6px; transform: rotate(180deg); margin-top: -1px; }
+    .tb:hover .ttip, .tb:focus-visible .ttip { opacity: 1; transform: translate(-50%, 0); }
+    @media (hover: hover) and (pointer: fine) {
+      .cell:hover .tbar-sw { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+      .card:hover .ph { transform: var(--t, none) scale(1.015); }
+    }
+    .cell:has(:focus-visible) .tbar-sw { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+
+    /* footer */
+    .m-cta { flex: none; height: 84px; display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; background: #fbfbfb; }
+    .m-btns { display: flex; gap: 16px; }
+    .btn { position: relative; display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; font-size: 16px; line-height: 20px; transition: transform .12s var(--ease-out), filter .15s ease, opacity .2s var(--ease-out); }
+    .btn:active { transform: scale(.97); }
+    .btn-ghost { background: #fff; border: 1px solid var(--line); filter: drop-shadow(0 1px .5px rgba(0,0,0,.1)); }
+    .btn-dark { color: #fff; background: var(--grad); box-shadow: var(--pill-shadow); border: 1px solid transparent; }
+    .btn-dark[aria-disabled="true"] { opacity: .6; cursor: not-allowed; }
+    .btn-dark[aria-disabled="true"]:active { transform: none; }
+    @media (hover: hover) and (pointer: fine) { .btn-dark:not([aria-disabled="true"]):hover { filter: brightness(1.15); } .btn-ghost:hover { background: #fafafa; } }
+    .spin { width: 14px; height: 14px; border-radius: 50%; border: 1.6px solid rgba(255,255,255,.3); border-top-color: #fff; animation: spin .7s linear infinite; display: none; }
+    .btn-dark.busy .spin { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* purple count on Apply */
+    .cnt { position: absolute; right: -8px; top: -8px; min-width: 24px; height: 24px; padding: 0 7px; display: grid; place-items: center; border-radius: 12px; background: var(--purple); border: 1px solid #fbfbfb; color: #fff; font-weight: 600; font-size: 12px; line-height: 15px;
+      box-shadow: var(--pill-shadow); filter: drop-shadow(-10px 0 10px rgba(167,85,247,.2)) drop-shadow(10px 0 10px rgba(167,85,247,.2)) drop-shadow(0 16px 8px rgba(167,85,247,.2));
+      opacity: 0; transform: scale(.4); transition: opacity .16s var(--ease-out), transform .32s var(--spring); }
+    .cnt.on { opacity: 1; transform: none; }
+    .cnt.bump { animation: bump .32s var(--spring); }
+    @keyframes bump { 0% { transform: scale(1.25); } 100% { transform: none; } }
+
+    /* ---------------------------------------------------------------------
+       Usage meter (the footer status): share of this listing's re-renders
+       --------------------------------------------------------------------- */
+    .use { position: relative; }
+    .use-btn { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0; border-radius: 10px; text-align: left; cursor: default; }
+    .use.shake { animation: shake .4s var(--ease-out); }
+    @keyframes shake { 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+    .ring { width: 28px; height: 28px; flex: none; }
+    .ring circle { fill: none; stroke-width: 1.8; }
+    .ring .trk { stroke: #e9e9e9; transition: stroke .3s var(--ease-out); }
+    .ring .a-used, .ring .a-next { stroke-linecap: round; transform: rotate(-90deg); transform-origin: 12px 12px; transition: stroke-dasharray .6s var(--ease-out), stroke-dashoffset .6s var(--ease-out), opacity .2s var(--ease-out); }
+    .ring .a-used { stroke: url(#gPurple); }
+    .ring .a-next { stroke: url(#gPurple); opacity: .38; }
+    .use.out .ring .trk { stroke: url(#gRed); }
+    .use.out .ring .a-used, .use.out .ring .a-next { opacity: 0; }
+    .msg { position: relative; display: grid; font-size: 14px; line-height: 16px; white-space: nowrap; }
+    .msg > span { grid-area: 1 / 1; transition: opacity .2s var(--ease-out), transform .26s var(--ease-out); }
+    .msg > span.off { position: absolute; left: 0; top: 0; opacity: 0; transform: translateY(4px); pointer-events: none; }
+    .m-idle { color: var(--muted); }
+    .m-sel { color: var(--body); }
+    .m-out { color: var(--muted); }
+    .m-out em { font-style: normal; color: #000; margin-left: 4px; }
+
+    .meter { position: absolute; left: -20px; bottom: calc(100% + 12px); width: 304px; z-index: 50; padding: 14px 16px 16px; background: #fff; border: 1px solid #f5f5f5; border-radius: 14px;
+      box-shadow: 0 19px 5px rgba(0,0,0,0), 0 12px 5px rgba(0,0,0,.01), 0 1px 2px rgba(0,0,0,.04); filter: var(--tip-drop);
+      opacity: 0; transform: translateY(4px) scale(.98); transform-origin: 32px 100%; pointer-events: none; transition: opacity .14s var(--ease-out), transform .14s var(--ease-out); cursor: default; }
+    .meter > .arr { position: absolute; left: 5.5px; top: 100%; width: 57px; height: 6px; transform: rotate(180deg); margin-top: -1px; }
+    .use:hover .meter, .use:has(:focus-visible) .meter, .use.peek .meter { opacity: 1; transform: none; transition: opacity .2s var(--ease-out) .1s, transform .24s var(--ease-out) .1s; }
+    .mt-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; line-height: 16px; color: #737373; white-space: nowrap; }
+    .mt-head span:last-child { color: var(--muted); }
+    .mt-big { display: flex; align-items: baseline; gap: 6px; margin: 10px 0 12px; }
+    .mt-big b { font-weight: 500; font-size: 28px; line-height: 32px; letter-spacing: -0.03em; color: #000; font-variant-numeric: tabular-nums; }
+    .mt-big span { font-size: 14px; line-height: 20px; color: #737373; }
+    /* tick meter: one hairline per ~2%; used = purple, selected = faint purple, rest = grey */
+    .ticks { display: flex; gap: 2px; height: 18px; }
+    .ticks i { flex: 1; border-radius: 1px; background: #ececec; transform-origin: 50% 100%; transition: background-color .3s var(--ease-out) calc(var(--i) * 6ms); }
+    .ticks i.u { background: #9a46f9; }
+    .ticks i.n { background: rgba(154, 70, 249, .3); animation: tick-wait 1.6s cubic-bezier(0.37, 0, 0.63, 1) infinite; }
+    .use.out .ticks i.u { background: #ff3b3e; }
+    @keyframes tick-wait { 50% { background: rgba(154, 70, 249, .55); } }
+    @keyframes tick-in { from { transform: scaleY(.35); opacity: .3; } to { transform: none; opacity: 1; } }
+    .use:hover .ticks i.u, .use:has(:focus-visible) .ticks i.u, .use.peek .ticks i.u { animation: tick-in .34s var(--ease-out) both; animation-delay: calc(var(--i) * 9ms + .1s); }
+    .mt-count { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 10px; font-size: 13px; line-height: 18px; color: #000; font-variant-numeric: tabular-nums; }
+    .mt-count span:last-child { color: var(--muted); transition: color .2s var(--ease-out); }
+    .mt-count span.up { color: #8e2df6; }
+    .use.out .mt-count span:last-child { color: #ff2a2d; }
+    .mt-note { margin: 14px -16px -16px; padding: 12px 16px 14px; border-top: 1px solid #f5f5f5; font-size: 12px; line-height: 16px; color: var(--muted); }
+    .mt-note b { font-weight: 500; color: var(--body); }
+    .use.out .mt-note { display: none; }
+
+    .cta-l { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .m-link { font-size: 14px; line-height: 16px; color: var(--purple); text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; text-decoration-thickness: 1px; white-space: nowrap; transition: color .15s ease, text-decoration-color .15s ease, text-underline-offset .15s ease; }
+    /* underline only appears on hover (or keyboard focus) */
+    .m-link:hover, .m-link:focus-visible { color: #8e2df6; text-decoration-color: currentColor; text-underline-offset: 2px; }
+    #goSwap { display: none; }
+    .use.out ~ #goSwap { display: inline; }
+    .swapinfo { display: none; align-items: center; gap: 6px; font-size: 16px; line-height: 20px; color: var(--muted); white-space: nowrap; }
+    .swapinfo img { width: 20px; height: 20px; }
+    .swapinfo .m-link { font-size: 16px; line-height: 20px; }
+    .swapinfo.shake { animation: shake .4s var(--ease-out); }
+    .modal[data-view="swap"] .use, .modal[data-view="swap"] #goSwap { display: none; }
+    .modal[data-view="swap"] .swapinfo { display: flex; }
+
+    /* 85%+ : the meter warms up before it runs out */
+    .use.warn .ring .a-used, .use.warn .ring .a-next { stroke: url(#gOrange); }
+    .use.warn .ticks i.u { background: #ff7a1a; }
+    .use.warn .ticks i.n { background: rgba(255, 122, 26, .3); animation-name: tick-wait-w; }
+    @keyframes tick-wait-w { 50% { background: rgba(255, 122, 26, .55); } }
+    .use.warn .mt-count span.up { color: #f06a0f; }
+    .use.warn .m-sel, .use.warn .m-idle { color: var(--body); }
+
+    /* all re-renders used: photos wash out, nothing can be picked */
+    .modal.out:not([data-view="swap"]) .card { cursor: pointer; }
+    /* photos fade right back so they read as locked; the effect thumbnails stay crisp */
+    .card { transition: opacity .3s var(--ease-out); }
+    /* unselected clips (photo + effect thumbnail) sit at 90%; hovering or selecting brings a clip to 100% */
+    .modal:not(.out):not([data-view="swap"]) .cell:not(.sel) .card,
+    .modal:not(.out):not([data-view="swap"]) .cell:not(.sel) .badge.on { opacity: .9; }
+    @media (hover: hover) and (pointer: fine) {
+      .modal:not(.out):not(.full):not([data-view="swap"]) .cell:not(.sel):hover .card,
+      .modal:not(.out):not(.full):not([data-view="swap"]) .cell:not(.sel):hover .badge.on { opacity: 1; }
+    }
+    .modal:not(.out):not(.full):not([data-view="swap"]) .cell:not(.sel):has(:focus-visible) .card,
+    .modal:not(.out):not(.full):not([data-view="swap"]) .cell:not(.sel):has(:focus-visible) .badge.on { opacity: 1; }
+    .modal.out:not([data-view="swap"]) .card { opacity: .1; }
+    /* after the limit (not while selecting): hovering a clip shows it fully (photo + effect) — click opens the swap dialog */
+    @media (hover: hover) and (pointer: fine) {
+      .modal.out:not([data-view="swap"]) .cell:hover .card { opacity: 1; }
+      .modal.out:not([data-view="swap"]) .cell:hover .badge.on { opacity: 1 !important; pointer-events: auto !important; }
+    }
+    .modal.out:not([data-view="swap"]) .card:focus-visible { opacity: 1; }
+    .modal.out:not([data-view="swap"]) .cell:has(:focus-visible) .badge.on { opacity: 1 !important; }
+    .modal.out:not([data-view="swap"]) .badge { opacity: 0 !important; pointer-events: none !important; }
+    /* selection used up the re-renders left: the rest fade to 10% (effect hidden), like after the limit */
+    .modal.full:not([data-view="swap"]) .cell:not(.sel) .card { opacity: .1; }
+    .modal.full:not([data-view="swap"]) .cell:not(.sel) .badge { opacity: 0 !important; pointer-events: none !important; }
+    .modal.full:not([data-view="swap"]) .cell:not(.sel) .tbar-sw { opacity: 0 !important; pointer-events: none !important; }
+    .modal.full:not([data-view="swap"]) .cell:not(.sel) .card { cursor: not-allowed; }
+    .modal.out:not([data-view="swap"]) .tbar-sw { opacity: 0 !important; pointer-events: none !important; }
+    @media (hover: hover) and (pointer: fine) { .modal.out:not([data-view="swap"]) .card:hover .ph { transform: var(--t, none); } }
+
+    /* =====================================================================
+       Swap Photo view (same clips; hover offers a photo swap)
+       ===================================================================== */
+    .m-grid { transition: opacity .16s var(--ease-out); }
+    .m-grid.fade { opacity: 0; }
+    .spill { position: absolute; left: 50%; bottom: 24px; z-index: 3; display: none; align-items: center; gap: 4px; padding: 10px 12px; background: #fff; border: 1px solid #f8f8f8; border-radius: 10px;
+      box-shadow: var(--pop-shadow), 0 1px 1px rgba(0,0,0,.1); font-size: 14px; line-height: 16px; letter-spacing: .056px; color: #4d4d4d; white-space: nowrap;
+      opacity: 0; transform: translate(-50%, 8px) scale(.96); transition: opacity .18s var(--ease-out), transform .22s var(--ease-out), background .14s ease; }
+    .spill img { width: 16px; height: 16px; }
+    .spill:hover { background: #fdfdfd; }
+    .spill:active { transform: translate(-50%, 0) scale(.97); }
+    .newchip { position: absolute; left: 20px; top: 20px; z-index: 2; display: none; height: 24px; padding: 0 10px; align-items: center; border-radius: 12px; background: #f9f3ff; border: .8px solid rgba(142,45,246,.1); color: var(--purple); font-size: 12px; line-height: 12px; }
+    .modal[data-view="swap"] .chk, .modal[data-view="swap"] .badge, .modal[data-view="swap"] .tbar-sw { display: none; }
+    .modal[data-view="swap"] .spill { display: flex; }
+    .modal[data-view="swap"] .card { background: #fff; cursor: default; }
+    /* a pending swap: "New" tag, effect thumbnail, and the effect tools on hover */
+    .modal[data-view="swap"] .cell.swapped .newchip { display: flex; }
+    .modal[data-view="swap"] .cell.swapped .badge { display: block; }
+    .modal[data-view="swap"] .cell.swapped .tbar-sw { display: block; }
+    .modal[data-view="swap"] .cell.swapped .spill { display: none; }
+
+    @media (hover: hover) and (pointer: fine) {
+      .modal[data-view="swap"] .cell:not(.swapped):hover .ph { opacity: .7; transform: var(--t, none); }
+      .modal[data-view="swap"] .cell:hover .spill { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .modal[data-view="swap"] .cell:has(:focus-visible) .spill { opacity: 1; transform: translate(-50%, 0); }
+
+    /* =====================================================================
+       Re-render limit dialog
+       ===================================================================== */
+    .lim-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(20, 20, 20, .5); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .22s var(--ease-out); }
+    .lim { position: fixed; left: 50%; top: 50%; z-index: 61; width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; border-radius: 24px; background: #fbfbfb;
+      box-shadow: 0 435px 122px rgba(0,0,0,0), 0 278px 111px rgba(0,0,0,.01), 0 157px 94px rgba(0,0,0,.03), 0 70px 70px rgba(0,0,0,.04), 0 17px 38px rgba(0,0,0,.05);
+      opacity: 0; pointer-events: none; transform: translate(-50%, calc(-50% + 10px)) scale(.97); transition: opacity .18s var(--ease-out), transform .18s var(--ease-out); }
+    body.lim-on .lim-scrim { opacity: 1; pointer-events: auto; }
+    body.lim-on .lim { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%); transition: opacity .24s var(--ease-out), transform .32s var(--ease-out); }
+    .lim-h { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; }
+    .lim-h h2 { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 400; font-size: 16px; line-height: 20px; }
+    .lim-h h2 svg { width: 20px; height: 20px; }
+    .lim-x { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: #fdfdfd; border: 1px solid #f8f8f8; box-shadow: 0 1px 1px rgba(0,0,0,.1); transition: background .14s ease, transform .12s var(--ease-out); }
+    .lim-x img { width: 20px; height: 20px; }
+    .lim-x:hover { background: #f6f6f6; }
+    .lim-x:active { transform: scale(.94); }
+    .lim-b { margin: 0; padding: 20px 20px 26px; background: #fff; box-shadow: inset 0 0 0 1px #f6f6f6; border-radius: 24px; display: flex; flex-direction: column; gap: 20px; }
+    .lim-b > p { margin: 0; padding: 0 12px; font-size: 16px; line-height: 24px; letter-spacing: -0.096px; color: var(--muted); }
+    .lim-cards { display: flex; gap: 20px; flex-wrap: wrap; }
+    .lc { flex: 1 1 300px; display: flex; flex-direction: column; overflow: hidden; border-radius: 20px; background: #fff; border: 1px solid #e8e8e8; text-align: left; }
+    .lc.hot { background: #fefcff; border-color: #e4ccff; box-shadow: 0 6px 2px rgba(228,204,255,.01), 0 1px 1px rgba(228,204,255,.09); cursor: pointer; transition: border-color .2s var(--ease-out), box-shadow .2s var(--ease-out); }
+    .lc.hot:hover { border-color: #d6b0ff; box-shadow: 0 8px 20px rgba(167,85,247,.08), 0 1px 1px rgba(228,204,255,.09); }
+    .lc-art { position: relative; height: 140px; overflow: hidden; background: #fff; border-bottom: .5px solid #e8e8e8; }
+    .lc.hot .lc-art { border-bottom-color: #f7f0ff; }
+    .lc-txt { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+    .lc-t { display: flex; align-items: center; gap: 6px; font-size: 20px; line-height: 24px; letter-spacing: -0.12px; color: #000; }
+    .lc-t img { width: 20px; height: 20px; }
+    .lc.hot .lc-t { color: var(--purple); }
+    .lc-txt h3, .lc-txt .h3 { display: block; margin: 0; font-weight: 500; font-size: 16px; line-height: 20px; color: #4d4d4d; }
+    .lc-txt p, .lc-txt .p { display: block; margin: -4px 0 0; font-size: 14px; line-height: 24px; color: #737373; max-width: 310px; }
+    .chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 20px; font-size: 12px; line-height: 12px; }
+    .chip img { width: 12px; height: 12px; }
+    .chip.wait { background: #fbfbfb; border: .8px solid #ededed; color: #737373; font-weight: 300; }
+    .chip.now { background: #f9f3ff; border: .8px solid rgba(142,45,246,.1); color: var(--purple); }
+    /* re-render art: two clips, one checked, cursor on the other */
+    .ph-a { position: absolute; top: 31.5px; width: 127px; height: 132.686px; overflow: hidden; border: 3.551px solid #fff; border-radius: 9.566px; filter: drop-shadow(0 8px 8.8px rgba(0,0,0,.04)); }
+    .ph-a > img { position: absolute; max-width: none; }
+    .ph-a .ck { position: absolute; left: 12px; top: 12px; width: 24px; height: 24px; border-radius: 6px; background: #fff; border: .75px solid #ededed; box-shadow: 0 .75px .75px rgba(0,0,0,.1); }
+    .ph-a .ck.on { background: linear-gradient(180deg, #a565ff, #8e2df6); border-color: transparent; border-radius: 7px; box-shadow: inset 0 1.2px 1.5px rgba(255,255,255,.28), 0 1.5px 4.5px rgba(142,45,246,.28); }
+    .ph-a .ck.on svg { position: absolute; inset: -.75px; width: 24px; height: 24px; }
+    .lc-cur { position: absolute; left: 209px; top: 61px; width: 34.07px; height: 43.27px; transform: rotate(8deg); max-width: none; }
+    /* swap art: old photo ⇄ new photo */
+    .sw-ph { position: absolute; top: 26px; width: 105.564px; height: 84.451px; overflow: hidden; border: 2.939px solid #fff; border-radius: 7.917px; filter: drop-shadow(0 6.6px 7.3px rgba(0,0,0,.05)); transition: transform .4s var(--ease-out); }
+    .sw-ph > img { position: absolute; max-width: none; }
+    .sw-old { left: 32.5px; transform: rotate(-2deg); }
+    .sw-new { right: 32.5px; transform: rotate(2deg); }
+    .sw-new .tag { position: absolute; left: 8.6px; top: 7.7px; height: 16px; padding: 0 6px; display: grid; place-items: center; border-radius: 11.5px; background: #f9f3ff; border: .717px solid rgba(142,45,246,.1); color: var(--purple); font-size: 9px; line-height: 10px; }
+    .sw-ring { position: absolute; left: 50%; top: 39.55px; width: 53.517px; height: 53.517px; transform: translateX(-50%); }
+    .sw-ring img { position: absolute; left: -55.37%; top: -21.3%; width: 210.74%; height: 210.75%; max-width: none; }
+    .sw-ln { position: absolute; top: 66px; height: 1px; background: #ebebeb; }
+    .sw-btn { position: absolute; left: 50%; top: calc(50% - 3.24px); width: 42.856px; height: 42.856px; transform: translate(-50%, -50%); border-radius: 50%; border: .619px solid var(--purple); background: linear-gradient(180deg, #fff, #efefef 50%, #fff); display: grid; place-items: center; }
+    .sw-btn img { width: 42.6px; height: 42.6px; max-width: none; margin: -1px 0 0; transition: transform .5s var(--ease-io); }
+    @media (hover: hover) and (pointer: fine) {
+      .lc.hot:hover .sw-old { transform: rotate(-4deg) translateX(-3px); }
+      .lc.hot:hover .sw-new { transform: rotate(4deg) translateX(3px); }
+      .lc.hot:hover .sw-btn img { transform: rotate(180deg); }
+    }
+    /* swap card: the onboarding "pick me" halo breathes until the card is hovered */
+    .lc-wrap { position: relative; flex: 1 1 300px; display: flex; isolation: isolate; }
+    .lc-wrap > .lc { flex: 1; }
+    .lc-wrap::before { content: ""; position: absolute; inset: -6px; z-index: -1; border-radius: 26px; pointer-events: none;
+      --hbg: rgba(167, 85, 247, 0.05); --hbg2: rgba(167, 85, 247, 0.2);
+      background-color: var(--hbg); animation: breathe 1.45s cubic-bezier(0.37, 0, 0.63, 1) infinite; transition: opacity .2s var(--ease-out); }
+    @keyframes breathe { 0%, 100% { background-color: var(--hbg); } 50% { background-color: var(--hbg2); } }
+    .lc-wrap:hover::before { animation: none; opacity: 0; }
+    /* title ring: usage card drops below it */
+    .lim-h { position: relative; z-index: 2; }
+    .lim-ring { display: inline-flex; border-radius: 50%; cursor: default; outline-offset: 3px; }
+    .lim-ring .meter { top: calc(100% + 12px); bottom: auto; left: -20px; transform: translateY(-4px) scale(.98); transform-origin: 30px 0; text-align: left; font-size: initial; }
+    .lim-ring .meter > .arr { top: auto; bottom: 100%; left: 1.5px; transform: none; margin: 0 0 -1px; }
+
+    /* =====================================================================
+       Effect dock
+       ===================================================================== */
+    .frost { position: absolute; inset: 0; z-index: 25; border-radius: 23px; background: rgba(255, 255, 255, 0.86); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .3s var(--ease-out); }
+    .modal.docked .frost { opacity: 1; pointer-events: auto; }
+    .cell.lit { z-index: 30; }
+    .modal.docked .cell.lit .tbar-sw { opacity: 0 !important; }
+
+    .dock { position: absolute; left: 20px; right: 20px; bottom: 20px; z-index: 35; border-radius: 20px; background: #fbfbfb; overflow: hidden;
+      box-shadow: 0 -55px 33px rgba(0,0,0,.02), 0 -24px 24px rgba(0,0,0,.03), 0 -6px 13px rgba(0,0,0,.04), 0 9px 5px rgba(0,0,0,.01), 0 4px 4px rgba(0,0,0,.02), 0 1px 2px rgba(0,0,0,.02);
+      opacity: 0; transform: translateY(28px); pointer-events: none; transition: opacity .2s var(--ease-out), transform .22s var(--ease-out); }
+    .dock.show { opacity: 1; transform: none; pointer-events: auto; transition: opacity .28s var(--ease-out), transform .42s var(--ease-drawer); }
+    .dock-top { height: 96px; padding: 24px; display: flex; align-items: center; justify-content: space-between; }
+    .tabs { position: relative; display: flex; height: 48px; padding: 3px 4px; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+    .tabs .ind { position: absolute; left: 0; top: 3px; height: 40px; width: var(--iw, 0); border-radius: 8px; background: var(--grad); box-shadow: var(--pill-shadow); transform: translateX(var(--ix, 0)); transition: transform .3s var(--ease-io), width .3s var(--ease-io); }
+    .tabs .ind.noanim { transition: none; }
+    .tab { position: relative; z-index: 1; display: flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 8px; font-size: 16px; line-height: 20px; color: var(--muted); --spd: #fff; transition: color .2s var(--ease-out); }
+    .tab svg { width: 20px; height: 20px; }
+    .tab.on { color: #fff; --spd: #000; }
+    .tab:not(.on):hover { color: #6f6f6f; }
+    .style-btn { display: flex; align-items: center; gap: 6px; height: 48px; padding: 4px 20px; background: #fff; border: 1px solid var(--line); border-radius: 12px; font-size: 16px; line-height: 20px; color: var(--muted); transition: color .15s ease; }
+    .style-btn svg { width: 20px; height: 20px; transform: rotate(90deg); }
+    .style-btn:hover { color: #6f6f6f; }
+    .dock-body { background: #fff; border: 1px solid #f6f6f6; border-radius: 24px; padding: 19px; }
+    .opts { display: flex; gap: 16px; overflow-x: auto; scrollbar-width: none; padding-bottom: 1px; transition: opacity .12s var(--ease-out); }
+    .opts::-webkit-scrollbar { display: none; }
+    .opts.swap { opacity: 0; }
+    .opt { position: relative; flex: none; width: 200px; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: #fbfbfb; border: 1px solid #f5f5f5; border-radius: 16px; text-align: left; transition: border-color .15s ease, box-shadow .15s ease, transform .15s var(--ease-out); }
+    .opt-h { display: flex; align-items: center; gap: 4px; font-size: 14px; line-height: 20px; color: var(--muted); transition: color .15s ease; }
+    .opt-h img, .opt-h svg { width: 20px; height: 20px; color: var(--muted); flex: none; transition: filter .15s ease; }
+    .opt-h .cur { margin-left: auto; padding: 2px 6px; border-radius: 6px; background: #f3f3f3; font-size: 11px; line-height: 14px; color: var(--body); }
+    /* the effect already on the clip: "Current" stays in the header; hovering shows Remove on the image
+       (same pill as the staging note). Auto has no Remove: it can only be replaced. */
+    .opt.iscur:focus-visible .note { opacity: 1; transform: translate(-50%, -50%); }
+    /* the option already on the clip: purple stroke, purple header and "Current" tag (same as Auto) */
+    .opt.iscur { background: #fff; border: 2px solid #8e2df6; padding: 9px; }
+    .opt.iscur .opt-h, .opt.iscur .opt-h svg { color: #8e2df6; }
+    .opt.iscur .opt-h img { filter: brightness(0) saturate(100%) invert(26%) sepia(93%) saturate(4560%) hue-rotate(264deg) brightness(97%) contrast(104%); }
+    .opt.iscur .cur { background: #f9f3ff; color: #8e2df6; }
+    @media (hover: hover) and (pointer: fine) {
+      .opt.iscur:hover { border-color: #8e2df6; }
+      .opt.iscur:hover .opt-h { color: #8e2df6; }
+      .opt.iscur:hover .opt-h img { filter: brightness(0) saturate(100%) invert(26%) sepia(93%) saturate(4560%) hue-rotate(264deg) brightness(97%) contrast(104%); }
+    }
+    .opt-i .note.rm { height: 28px; padding: 0 14px; gap: 3px; background: rgba(0,0,0,.32); border-color: rgba(255,255,255,.45); font-size: 12px; line-height: 16px; letter-spacing: 0; }
+    .opt-i .note.rm svg { width: 14px; height: 14px; flex: none; }
+    /* Auto camera option: purple tile, picked by default, can be replaced but never removed */
+    .opt.auto .opt-i { display: grid; place-items: center; background: #fff; border: 1px solid #f5f5f5; border-radius: 14px; }
+    .opt.auto .opt-i > span { display: flex; flex-direction: column; align-items: center; }
+    .opt.auto .opt-i img { width: 43.2px; height: 43.2px; object-fit: contain; transition: transform .4s var(--ease-out); }
+    .opt.auto .opt-i b { font-weight: 500; font-size: 21.6px; line-height: 28.8px; color: var(--purple); }
+    /* Auto can't be picked: no pointer, no lift on hover */
+    .opt.auto { cursor: default; }
+    @media (hover: hover) and (pointer: fine) { .opt.auto:hover { transform: none; box-shadow: none; } }
+    .opt.auto:active { transform: none; }
+    .opt.drop { border-color: #f5f5f5; box-shadow: none; transform: scale(.98); opacity: .6; }
+    .opt-i { position: relative; width: 180px; height: 180px; border-radius: 12px; overflow: hidden; background: #f3f3f3; }
+    .opt-i > img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s var(--ease-out); }
+    .opt-i .note { position: absolute; left: 50%; top: 50%; height: 24px; padding: 0 12px; display: flex; align-items: center; border-radius: 41px; border: 1px solid #fff; background: rgba(0,0,0,.2); -webkit-backdrop-filter: blur(4.8px); backdrop-filter: blur(4.8px);
+      color: #fff; font-size: 10px; line-height: 13px; letter-spacing: -.2px; white-space: nowrap; opacity: 0; transform: translate(-50%, -50%) scale(.94); transition: opacity .18s var(--ease-out), transform .2s var(--ease-out); }
+    @media (hover: hover) and (pointer: fine) {
+      .opt:hover { border-color: #f5f5f5; box-shadow: 0 2px 5px rgba(0,0,0,.05), 0 1px 1px rgba(0,0,0,.1); transform: translateY(-2px); }
+      .opt:hover .opt-h { color: #000; }
+      .opt:hover .opt-h img { filter: brightness(0); }
+      .opt:hover .opt-i > img { transform: scale(1.04); }
+      .opt:hover .note { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    .opt:active { transform: scale(.98); }
+    .opt.pick { border-color: #000; box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
+    .opt.pick .opt-h { color: #000; }
+    @keyframes opt-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .opts.stagger .opt { animation: opt-in .32s var(--ease-out) both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dock, .dock.show, .tbar-sw, .modal.enter, .modal.closed, .badge, .meter, .cnt, .lim, body.lim-on .lim { transform: translate(-50%, -50%) !important; }
+      .dock, .dock.show, .tbar-sw, .modal.enter, .modal.closed, .badge, .meter, .cnt { transform: none !important; }
+      .hind, .sw-ph, .sw-btn img { transition: none; }
+      .lc-wrap::before { animation: none; }
+      .tabs .ind, .card .ph, .ring .a-used, .ring .a-next, .ticks i { transition: none; }
+      .ticks i { animation: none !important; }
+      .badge.pop, .cnt.bump, .use.shake, .opts.stagger .opt { animation: none; }
+      .chk svg path { transition: none !important; }
+      .card:hover .ph { transform: var(--t, none) !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ================= Dashboard (behind) ================= -->
+  <!-- ================= Shareable link page (behind) — a copy of share.html ================= -->
+  <iframe class="base" id="base" src="share-base.html" title="456 Lakeview Ln shareable link"></iframe>
+
+  <div class="scrim" id="scrim"></div>
+
+  <!-- ================= Re-render modal ================= -->
+  <div class="modal enter" id="modal" role="dialog" aria-modal="true" aria-label="Re-render clips">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <defs>
+        <linearGradient id="gPurple" x1="12" y1="3" x2="12" y2="21" gradientUnits="userSpaceOnUse"><stop stop-color="#A565FF"/><stop offset="1" stop-color="#8E2DF6"/></linearGradient>
+        <linearGradient id="gRed" x1="12" y1="3" x2="12" y2="21" gradientUnits="userSpaceOnUse"><stop stop-color="#FF7F81"/><stop offset="1" stop-color="#FF2A2D"/></linearGradient>
+        <linearGradient id="gOrange" x1="12" y1="3" x2="12" y2="21" gradientUnits="userSpaceOnUse"><stop stop-color="#FFB547"/><stop offset="1" stop-color="#FF7A1A"/></linearGradient>
+      </defs>
+    </svg>
+
+    <div class="m-head">
+      <nav class="htabs" aria-label="Edit listing">
+        <span class="hind noanim" id="hind"></span>
+        <button class="htab on" type="button" data-view="render" aria-current="page"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M15.3059 6.37147L14.7166 5.78222C12.1132 3.17872 7.89205 3.17872 5.28856 5.78222C2.68506 8.38571 2.68506 12.6068 5.28856 15.2103C7.89205 17.8138 12.1132 17.8138 14.7166 15.2103C16.2307 13.6963 16.8642 11.6352 16.6173 9.66336M15.3059 2.83594V6.37147H11.7704"/></svg>Re-Render</button>
+        <button class="htab" type="button" title="Next design"><img src="assets/rr/reorder.svg" alt="" />Reorder All</button>
+        <button class="htab" type="button" title="Next design"><img src="assets/rr/text.svg" alt="" />Text Hooks</button>
+        <button class="htab" type="button" data-view="swap"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6.66732L5 6.66732M8.4375 10.0007L5 6.66732L8.4375 3.33398"/><path d="M5 13.3333L15 13.3333M11.5625 16.6667L15 13.3333L11.5625 10"/></svg>Swap Photo</button>
+        <button class="htab" type="button" title="Next design"><img src="assets/rr/folder-open.svg" alt="" />Branding</button>
+      </nav>
+    </div>
+
+    <div class="m-body" id="body">
+      <div class="m-grid" id="grid"></div>
+      <span class="sbar" id="sbar"></span>
+      <div class="frost" id="frost"></div>
+    </div>
+
+    <footer class="m-cta" id="cta">
+      <div class="cta-l">
+      <div class="use" id="use">
+        <button class="use-btn" id="useBtn" type="button" aria-describedby="meter">
+        <svg class="ring" viewBox="0 0 24 24" aria-hidden="true">
+          <circle class="trk" cx="12" cy="12" r="8.1" />
+          <circle class="a-next" id="aNext" cx="12" cy="12" r="8.1" />
+          <circle class="a-used" id="aUsed" cx="12" cy="12" r="8.1" />
+        </svg>
+        <span class="msg" aria-live="polite">
+          <span class="m-idle" id="mIdle">Re-render fixes clips with bad quality or render errors.</span>
+          <span class="m-sel off" id="mSel"></span>
+          <span class="m-out off" id="mOut">You've reached your re-render limit</span>
+        </span>
+        </button>
+
+        <div class="meter" id="meter" role="tooltip">
+          <div class="mt-head"><span>Re-renders on this listing</span><span id="mtSub">Resets in 6 hr</span></div>
+          <p class="mt-big"><b id="mtPct">13%</b><span>used</span></p>
+          <div class="ticks" id="ticks" aria-hidden="true"></div>
+          <div class="mt-count"><span id="mtCount">2 of 15 re-renders used</span><span id="mtDelta">13 left</span></div>
+          <p class="mt-note">Re-rendering stays open for <b id="winDays">28 more days</b>.</p>
+          <img class="arr" src="assets/ob/imgShape.svg" alt="" />
+        </div>
+      </div>
+      <button class="m-link" id="goSwap" type="button">Use Swaps</button>
+      <div class="swapinfo" id="swapInfo">
+        <img src="assets/rr/question.svg" alt="" />
+        <span id="swN">5 Swaps Available</span>
+        <a class="m-link" href="#" id="getMore">Get More</a>
+      </div>
+      </div>
+      <div class="m-btns">
+        <button class="btn btn-ghost" id="cancel" type="button">Cancel</button>
+        <button class="btn btn-dark" id="apply" type="button" aria-disabled="true"><i class="spin"></i><span id="applyL">Apply All Changes</span><span class="cnt" id="cnt" aria-hidden="true">0</span></button>
+      </div>
+    </footer>
+
+    <!-- effect dock -->
+    <div class="dock" id="dock" role="region" aria-label="Choose an effect">
+      <div class="dock-top">
+        <div class="tabs" id="tabs" role="tablist"><span class="ind" id="ind"></span></div>
+        <button class="style-btn" type="button">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.33366 14.3743C7.75836 14.3743 7.29199 13.908 7.29199 13.3327C7.29199 12.7574 7.75836 12.291 8.33366 12.291C8.90896 12.291 9.37533 12.7574 9.37533 13.3327C9.37533 13.908 8.90896 14.3743 8.33366 14.3743ZM12.7087 6.66602C12.7087 7.24131 12.2423 7.70768 11.667 7.70768C11.0917 7.70768 10.6253 7.24131 10.6253 6.66602C10.6253 6.09072 11.0917 5.62435 11.667 5.62435C12.2423 5.62435 12.7087 6.09072 12.7087 6.66602ZM1.66699 9.99935C1.66699 6.07098 1.66699 4.10679 2.88738 2.8864C4.10777 1.66602 6.07195 1.66602 10.0003 1.66602C13.9287 1.66602 15.8929 1.66602 17.1133 2.8864C18.3337 4.10679 18.3337 6.07098 18.3337 9.99935C18.3337 13.9277 18.3337 15.8919 17.1133 17.1123C15.8929 18.3327 13.9287 18.3327 10.0003 18.3327C6.07195 18.3327 4.10777 18.3327 2.88738 17.1123C1.66699 15.8919 1.66699 13.9277 1.66699 9.99935ZM8.33366 15.6243C7.06801 15.6243 6.04199 14.5983 6.04199 13.3327C6.04199 12.067 7.06801 11.041 8.33366 11.041C9.59931 11.041 10.6253 12.067 10.6253 13.3327C10.6253 14.5983 9.59931 15.6243 8.33366 15.6243ZM13.9587 6.66602C13.9587 7.93167 12.9326 8.95768 11.667 8.95768C10.4013 8.95768 9.37533 7.93167 9.37533 6.66602C9.37533 5.40036 10.4013 4.37435 11.667 4.37435C12.9326 4.37435 13.9587 5.40036 13.9587 6.66602ZM11.042 13.3327C11.042 12.9875 11.3218 12.7077 11.667 12.7077H15.8337C16.1788 12.7077 16.4587 12.9875 16.4587 13.3327C16.4587 13.6779 16.1788 13.9577 15.8337 13.9577H11.667C11.3218 13.9577 11.042 13.6779 11.042 13.3327ZM8.33366 6.04102C8.67884 6.04102 8.95866 6.32084 8.95866 6.66602C8.95866 7.01119 8.67884 7.29102 8.33366 7.29102L4.16699 7.29102C3.82181 7.29102 3.54199 7.01119 3.54199 6.66602C3.54199 6.32084 3.82181 6.04102 4.16699 6.04102L8.33366 6.04102ZM3.54199 13.3327C3.54199 12.9875 3.82181 12.7077 4.16699 12.7077H5.00033C5.3455 12.7077 5.62533 12.9875 5.62533 13.3327C5.62533 13.6779 5.3455 13.9577 5.00033 13.9577H4.16699C3.82181 13.9577 3.54199 13.6779 3.54199 13.3327ZM15.8337 6.04102C16.1788 6.04102 16.4587 6.32084 16.4587 6.66602C16.4587 7.01119 16.1788 7.29102 15.8337 7.29102H15.0003C14.6551 7.29102 14.3753 7.01119 14.3753 6.66602C14.3753 6.32084 14.6551 6.04102 15.0003 6.04102H15.8337Z"/></svg>
+          Style Settings
+        </button>
+      </div>
+      <div class="dock-body"><div class="opts" id="opts"></div></div>
+    </div>
+  </div>
+
+  <!-- ================= Re-render limit dialog ================= -->
+  <div class="lim-scrim" id="limScrim"></div>
+  <div class="lim" id="lim" role="dialog" aria-modal="true" aria-labelledby="limT" inert>
+    <div class="lim-h">
+      <h2 id="limT"><span class="use out lim-ring" tabindex="0" aria-label="Re-render usage" aria-describedby="limMeter"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.1" fill="none" stroke="url(#gRed)" stroke-width="2"/></svg><span class="meter" id="limMeter" role="tooltip"></span></span>You've reached your re-render limit</h2>
+      <button class="lim-x" id="limX" type="button" aria-label="Close"><img src="assets/rr/close.svg" alt="" /></button>
+    </div>
+    <div class="lim-b">
+      <p>You can use Swap Photo to replace a clip with a new photo, or upload the same one again and give it a new effect.</p>
+      <div class="lim-cards">
+        <div class="lc">
+          <div class="lc-art">
+            <div class="ph-a" style="left:37.5px"><img src="assets/ob/img95Img12691.jpg" alt="" style="width:240.3px;height:160.28px;left:50%;top:50%;transform:translate(-50%,-50%)" /><span class="ck on"><svg viewBox="0 0 32 32" fill="none"><path d="M9 16.25l4.75 4.75L23.25 11" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+            <div class="ph-a" style="left:184.5px"><img src="assets/ob/img95Img13201.jpg" alt="" style="width:215.63px;height:143.82px;left:50%;top:0;transform:translateX(-50%)" /><span class="ck"></span></div>
+            <img class="lc-cur" src="assets/rr/cursor.svg" alt="" />
+          </div>
+          <div class="lc-txt">
+            <span class="lc-t"><img src="assets/rr/restart-dark.svg" alt="" />Re-render</span>
+            <h3>Re-render the clip</h3>
+            <p>Regenerate the same photo to fix rendering issues or improve quality.</p>
+            <span class="chip wait"><img src="assets/rr/clock12.svg" alt="" /><span id="limReset">Available again in 6 hr</span></span>
+          </div>
+        </div>
+        <div class="lc-wrap">
+        <button class="lc hot" id="limCard" type="button">
+          <span class="lc-art">
+            <span class="sw-ln" style="left:138.5px;width:17.7px"></span><span class="sw-ln" style="left:193.8px;width:17.7px"></span>
+            <span class="sw-ring"><img src="assets/rr/sw-ellipse.svg" alt="" /></span>
+            <span class="sw-ph sw-old"><img src="assets/ob/img1235.jpg" alt="" style="width:164.9px;height:92.19px;left:50%;top:50%;transform:translate(-50%,-50%)" /></span>
+            <span class="sw-ph sw-new"><img src="assets/rr/newphoto.jpg" alt="" style="width:132.13px;height:88.1px;right:-13.28px;top:50%;transform:translateY(-50%)" /><span class="tag">New</span></span>
+            <span class="sw-btn"><img src="assets/rr/sw-bt.svg" alt="" /></span>
+          </span>
+          <span class="lc-txt">
+            <span class="lc-t"><img src="assets/rr/swap-purple.svg" alt="" />Swap Photo</span>
+            <span class="h3">Replace the clip</span>
+            <span class="p">Upload a new photo, or the same one again, then apply VFX, crop or camera movement.</span>
+            <span class="chip now"><img src="assets/rr/avail.svg" alt="" /><span id="limSw">5 swaps available</span></span>
+          </span>
+        </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="file" accept="image/*" hidden />
+
+  <script>
+  (function () {
+    "use strict";
+    var A = "assets/ob/", R = "assets/rr/";
+    var $ = function (s, r) { return (r || document).querySelector(s); };
+    var each = function (list, fn) { Array.prototype.forEach.call(list, fn); };
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* ---------- allowance: re-renders per listing, shown as a share (like a usage meter) ---------- */
+    var LIMIT = 15;          // clips that can be re-rendered on this listing
+    var used = 2;            // already spent → 13%, matching the design's ring
+    // re-renders come back on a rolling window (like a usage limit), not on a date
+    var RESET_AT = Date.now() + 6 * 3600e3;
+    function resetIn() {
+      var min = Math.max(0, Math.ceil((RESET_AT - Date.now()) / 60000)), h = Math.floor(min / 60), m = min % 60;
+      return h ? h + " hr" + (m ? " " + m + " min" : "") : m + " min";
+    }
+    function syncReset() {
+      var t = resetIn();
+      $("#mtSub").textContent = "Resets in " + t;
+      $("#limReset").textContent = "Available again in " + t;
+    }
+    var WINDOW = 30;                                       // days a listing can be re-rendered
+    var CREATED = Date.now() - 2 * 864e5;                  // demo: listing created 2 days ago
+    var daysLeft = Math.max(WINDOW - Math.floor((Date.now() - CREATED) / 864e5), 0);
+    var pct = function (n) { return Math.round(n / LIMIT * 100); };
+    var TICKS = 52;          // hairlines in the hover meter
+    var WARN = 85;           // % at which the meter turns orange
+    var swapsLeft = 5;       // photo swaps on this listing
+    var view = "render";
+
+    /* ---------- inline icons (currentColor so states can recolor them) ---------- */
+    var ICON = {
+      crop: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.617" stroke-linecap="round"><path d="M14.6868 11.7806H8.97945C6.58792 11.7806 5.39216 11.7806 4.6492 11.0376C3.90625 10.2946 3.90625 9.09888 3.90625 6.70735V1"/><path d="M6.75613 3.21875H7.70735C10.0989 3.21875 11.2946 3.21875 12.0376 3.9617C12.7806 4.70466 12.7806 5.90042 12.7806 8.29195V9.24318M2 3.21875H3.90245M12.7806 12.0969V13.9993"/></svg>',
+      magic: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.56302 2.56302C1.81233 3.31371 1.81233 4.53082 2.56302 5.28151L3.62151 6.34C3.62946 6.33081 3.63779 6.32184 3.64652 6.31311L6.31319 3.64645C6.32189 3.63774 6.33083 3.62943 6.34 3.6215L5.28151 2.56302C4.53082 1.81233 3.31371 1.81233 2.56302 2.56302Z"/><path d="M7.04524 4.32675C7.03731 4.33591 7.029 4.34485 7.0203 4.35355L4.35363 7.02022C4.3449 7.02895 4.33593 7.03729 4.32674 7.04523L10.7185 13.437C11.4692 14.1877 12.6863 14.1877 13.437 13.437C14.1877 12.6863 14.1877 11.4692 13.437 10.7185L7.04524 4.32675Z"/><path d="M10.7334 1.53813C10.8407 1.26507 11.2257 1.26507 11.333 1.53813L11.6199 2.26832C11.6526 2.35168 11.7184 2.41767 11.8015 2.45055L12.529 2.73853C12.801 2.84623 12.801 3.23267 12.529 3.34036L11.8015 3.62834C11.7184 3.66122 11.6526 3.72721 11.6199 3.81058L11.333 4.54077C11.2257 4.81383 10.8407 4.81383 10.7334 4.54077L10.4464 3.81058C10.4137 3.72721 10.3479 3.66122 10.2649 3.62834L9.53737 3.34036C9.26532 3.23267 9.26532 2.84623 9.53737 2.73853L10.2649 2.45055C10.3479 2.41767 10.4137 2.35168 10.4464 2.26832L10.7334 1.53813Z"/><path d="M13.3115 6.0863C13.4188 5.81325 13.8038 5.81325 13.9111 6.0863L14.0157 6.35253C14.0484 6.4359 14.1142 6.50189 14.1972 6.53477L14.4625 6.63977C14.7345 6.74746 14.7345 7.1339 14.4625 7.2416L14.1972 7.3466C14.1142 7.37948 14.0484 7.44547 14.0157 7.52883L13.9111 7.79506C13.8038 8.06812 13.4188 8.06812 13.3115 7.79506L13.2068 7.52883C13.1741 7.44547 13.1083 7.37948 13.0253 7.3466L12.76 7.2416C12.488 7.1339 12.488 6.74746 12.76 6.63977L13.0253 6.53477C13.1083 6.50189 13.1741 6.4359 13.2068 6.35253L13.3115 6.0863Z"/><path d="M3.42213 10.2048C3.52943 9.93174 3.91445 9.93174 4.02174 10.2048L4.12635 10.471C4.15911 10.5544 4.22486 10.6204 4.30792 10.6533L4.57317 10.7583C4.84522 10.866 4.84522 11.2524 4.57317 11.3601L4.30792 11.4651C4.22486 11.498 4.15911 11.564 4.12635 11.6473L4.02174 11.9136C3.91445 12.1866 3.52943 12.1866 3.42213 11.9136L3.31752 11.6473C3.28476 11.564 3.21901 11.498 3.13595 11.4651L2.8707 11.3601C2.59865 11.2524 2.59865 10.866 2.8707 10.7583L3.13595 10.6533C3.21901 10.6204 3.28476 10.5544 3.31752 10.471L3.42213 10.2048Z"/></svg>',
+      camera: '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.1514 17.5H11.8551C14.456 17.5 15.7564 17.5 16.6906 16.8872C17.095 16.6219 17.4422 16.2809 17.7124 15.8839C18.3366 14.9667 18.3366 13.6899 18.3366 11.1364C18.3366 8.5828 18.3366 7.30601 17.7124 6.38884C17.4422 5.99178 17.095 5.65087 16.6906 5.38557C16.0903 4.99178 15.3388 4.85102 14.1883 4.80071C13.6392 4.80071 13.1665 4.39223 13.0588 3.86364C12.8973 3.07074 12.1882 2.5 11.3646 2.5H8.64187C7.8183 2.5 7.10922 3.07074 6.9477 3.86364C6.84002 4.39223 6.3673 4.80071 5.81825 4.80071C4.6677 4.85102 3.91622 4.99178 3.31596 5.38557C2.91155 5.65087 2.56433 5.99178 2.29411 6.38884C1.66992 7.30601 1.66992 8.5828 1.66992 11.1364C1.66992 13.6899 1.66992 14.9667 2.29411 15.8839C2.56433 16.2809 2.91155 16.6219 3.31596 16.8872C4.25012 17.5 5.55055 17.5 8.1514 17.5ZM10.0033 7.72727C8.0856 7.72727 6.53103 9.25357 6.53103 11.1364C6.53103 13.0192 8.0856 14.5455 10.0033 14.5455C11.9209 14.5455 13.4755 13.0192 13.4755 11.1364C13.4755 9.25357 11.9209 7.72727 10.0033 7.72727ZM10.0033 9.09091C8.85266 9.09091 7.91992 10.0067 7.91992 11.1364C7.91992 12.266 8.85266 13.1818 10.0033 13.1818C11.1538 13.1818 12.0866 12.266 12.0866 11.1364C12.0866 10.0067 11.1538 9.09091 10.0033 9.09091ZM13.9384 8.40909C13.9384 8.03253 14.2494 7.72727 14.6329 7.72727H15.5588C15.9423 7.72727 16.2533 8.03253 16.2533 8.40909C16.2533 8.78565 15.9423 9.09091 15.5588 9.09091H14.6329C14.2494 9.09091 13.9384 8.78565 13.9384 8.40909Z"/></svg>',
+      heart: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M1.66667 7.61425C1.66667 11.6667 5.01619 13.8262 7.46811 15.7591C8.33333 16.4411 9.16667 17.0833 10 17.0833C10.8333 17.0833 11.6667 16.4411 12.5319 15.7591C14.9838 13.8262 18.3333 11.6667 18.3333 7.61425C18.3333 3.5618 13.7499 0.687887 10 4.58386C6.25013 0.687887 1.66667 3.5618 1.66667 7.61425Z"/></svg>',
+      armchair: '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.7776 15H5.73861C5.68698 15 5.66117 15 5.63776 14.9997C5.6335 14.9996 5.62925 14.9995 5.625 14.9995V15.8329V16.6667C5.625 17.0119 5.34518 17.2917 5 17.2917C4.65482 17.2917 4.375 17.0119 4.375 16.6667V14.7297C3.68434 14.4281 3.13394 13.8926 2.86831 13.2162C2.86056 13.1965 2.8524 13.1746 2.83608 13.1308L1.75023 10.2203C1.40391 9.29198 2.17724 8.33333 3.27241 8.33333C3.94767 8.33333 4.55066 8.71108 4.78083 9.27828L5.69593 11.5333C5.77921 11.7386 5.82085 11.8412 5.8812 11.9251C6.02213 12.121 6.24348 12.2596 6.49764 12.3112C6.60647 12.3333 6.72864 12.3333 6.97297 12.3333H12.7889C13.2632 12.3333 13.5003 12.3333 13.6986 12.2516C13.8069 12.207 13.9053 12.1453 13.9892 12.0696C14.1428 11.9309 14.2236 11.7317 14.3852 11.3333L15.2192 9.27828C15.4493 8.71108 16.0523 8.33333 16.7276 8.33333C17.8228 8.33333 18.5961 9.29198 18.2498 10.2203L17.3169 12.7208C17.1543 13.1566 17.073 13.3745 16.9656 13.5597C16.6674 14.0743 16.194 14.4813 15.625 14.7296V16.6667C15.625 17.0119 15.3452 17.2917 15 17.2917C14.6548 17.2917 14.375 17.0119 14.375 16.6667V14.9962C14.2195 15 14.0293 15 13.7776 15Z"/><path d="M11.0298 2.91667H8.97025C8.05269 2.91666 7.32364 2.91665 6.75254 2.98978C6.16529 3.06497 5.68229 3.22392 5.29843 3.5895C4.91171 3.95781 4.74093 4.42585 4.66065 4.99457C4.58331 5.54239 4.58332 6.24008 4.58333 7.1106V7.844L4.75874 7.96857C5.10511 8.21457 5.38496 8.55056 5.55311 8.96493L6.58179 11.4999L12.789 11.5C12.9092 11.5 13.0067 11.5 13.0918 11.4988L13.0935 11.4988L13.4167 11.493L13.5219 11.2427C13.5481 11.1804 13.5773 11.1083 13.6132 11.02L14.4471 8.96493C14.6152 8.55062 14.895 8.21468 15.2413 7.96869L15.4167 7.84412V7.11062C15.4167 6.24009 15.4167 5.5424 15.3394 4.99457C15.2591 4.42585 15.0883 3.95781 14.7016 3.5895C14.3177 3.22392 13.8347 3.06497 13.2475 2.98978C12.6764 2.91665 11.9473 2.91666 11.0298 2.91667Z"/></svg>',
+      users: '<svg viewBox="0 0 19 20" fill="currentColor"><path d="M12.2708 6.24967C12.2708 7.86051 11.0303 9.16634 9.49998 9.16634C7.96969 9.16634 6.72915 7.86051 6.72915 6.24967C6.72915 4.63884 7.96969 3.33301 9.49998 3.33301C11.0303 3.33301 12.2708 4.63884 12.2708 6.24967Z"/><path d="M14.25 13.7497C14.25 15.3605 12.1234 16.6663 9.5 16.6663C6.87665 16.6663 4.75 15.3605 4.75 13.7497C4.75 12.1388 6.87665 10.833 9.5 10.833C12.1234 10.833 14.25 12.1388 14.25 13.7497Z"/><path d="M5.63831 4.16699C5.7788 4.16699 5.91595 4.1815 6.0484 4.20913C5.72574 4.81237 5.54169 5.50872 5.54169 6.25033C5.54169 6.97387 5.71689 7.65434 6.02507 8.24729C5.89987 8.27185 5.77057 8.28471 5.63831 8.28471C4.51856 8.28471 3.61083 7.36293 3.61083 6.22585C3.61083 5.08878 4.51856 4.16699 5.63831 4.16699Z"/><path d="M4.31249 15.822C3.86289 15.2562 3.56252 14.562 3.56252 13.7503C3.56252 12.9635 3.84481 12.287 4.27168 11.7309C2.7638 11.854 1.58335 12.7222 1.58335 13.7748C1.58335 14.8373 2.78455 15.7119 4.31249 15.822Z"/><path d="M13.4583 6.25033C13.4583 6.97387 13.2831 7.65434 12.9749 8.24729C13.1001 8.27185 13.2294 8.28471 13.3617 8.28471C14.4814 8.28471 15.3891 7.36293 15.3891 6.22585C15.3891 5.08878 14.4814 4.16699 13.3617 4.16699C13.2212 4.16699 13.084 4.1815 12.9516 4.20913C13.2742 4.81237 13.4583 5.50872 13.4583 6.25033Z"/><path d="M14.6875 15.822C16.2154 15.7119 17.4166 14.8373 17.4166 13.7748C17.4166 12.7222 16.2362 11.854 14.7283 11.7309C15.1552 12.287 15.4375 12.9635 15.4375 13.7503C15.4375 14.562 15.1371 15.2562 14.6875 15.822Z"/></svg>',
+      slideL: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5625" stroke-linecap="round" stroke-linejoin="round"><path d="M16.25 10H3.75M7 13.25L3.75 10 7 6.75"/></svg>',
+      slideR: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5625" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 10h12.5M13 6.75L16.25 10 13 13.25"/></svg>',
+      orbitL: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5625" stroke-linecap="round" stroke-linejoin="round"><path d="M16 13.5a6.5 6.5 0 0 0-11.6-4"/><path d="M4 5.5v4h4"/></svg>',
+      orbitR: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5625" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5a6.5 6.5 0 0 1 11.6-4"/><path d="M16 5.5v4h-4"/></svg>',
+      plus: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5625" stroke-linecap="round"><path d="M10 4.5v11M4.5 10h11"/></svg>',
+      trash: '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2.33 3.5h9.34M5.25 3.5V2.63c0-.48.39-.88.88-.88h1.75c.48 0 .87.4.87.88v.87M10.5 3.5l-.4 6.84a1.75 1.75 0 0 1-1.75 1.66H5.65a1.75 1.75 0 0 1-1.75-1.66L3.5 3.5M5.83 6.13v3.2M8.17 6.13v3.2"/></svg>',
+      undo: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5h5.5a3.25 3.25 0 0 1 0 6.5H6.5"/><path d="M6.75 4 4.25 6.5 6.75 9"/></svg>',
+      speed: '<svg viewBox="0 0 20 20" fill="none"><path d="M2 6C2 3.79086 3.79086 2 6 2H14C16.2091 2 18 3.79086 18 6V14C18 16.2091 16.2091 18 14 18H6C3.79086 18 2 16.2091 2 14V6Z" fill="currentColor"/><g style="stroke:var(--spd,#fff)" stroke-width=".833" stroke-linecap="round"><path d="M12.5 13.9999C12.5 14.2651 12.6053 14.5194 12.7929 14.7069C12.9804 14.8944 13.2347 14.9997 13.4999 14.9997C13.7651 14.9997 14.0194 14.8944 14.2069 14.7069C14.3944 14.5194 14.4997 14.2651 14.4997 13.9999C14.4997 13.7347 14.3944 13.4804 14.2069 13.2929C14.0194 13.1053 13.7651 13 13.4999 13C13.2347 13 12.9804 13.1053 12.7929 13.2929C12.6053 13.4804 12.5 13.7347 12.5 13.9999Z"/><path d="M12.4999 14H11.5"/><path d="M7.49974 5.99987C7.49974 6.26505 7.3944 6.51937 7.20688 6.70688C7.01937 6.8944 6.76505 6.99974 6.49987 6.99974C6.23469 6.99974 5.98037 6.8944 5.79286 6.70688C5.60534 6.51937 5.5 6.26505 5.5 5.99987C5.5 5.73469 5.60534 5.48037 5.79286 5.29286C5.98037 5.10534 6.23469 5 6.49987 5C6.76505 5 7.01937 5.10534 7.20688 5.29286C7.3944 5.48037 7.49974 5.73469 7.49974 5.99987Z"/><path d="M7.5 6H8.49987"/><path d="M10.9999 6H10"/><path d="M9.99987 14H9"/><path d="M5.5002 13.999C9.49967 13.999 10.4995 6 14.499 6"/></g></svg>'
+    };
+    var img = function (src, cls) { return '<img' + (cls ? ' class="' + cls + '"' : "") + ' src="' + src + '" alt="">'; };
+
+    /* ---------- effect catalog: kind = which part of a clip it changes ---------- */
+    var FX = {};
+    function add(id, kind, label, thumb, icon, extra) {
+      FX[id] = Object.assign({ id: id, kind: kind, label: label, thumb: thumb, icon: icon }, extra || {});
+      return id;
+    }
+    var STAGE_THUMB = A + "img142.jpg", STAGE_RESULT = A + "img1235.jpg";
+    var TABS = [
+      { id: "favorites", label: "Favorites", icon: ICON.heart, items: [] },
+      { id: "transitions", label: "Transitions", icon: ICON.magic, items: [
+        add("starry", "vfx", "Starry Night", R + "starry.jpg", img(R + "star.svg"), { fit: "62.897px 59.998px" }),
+        add("golden", "vfx", "Golden Hour", A + "img143.jpg"),
+        add("dusk", "vfx", "Day to Dusk", A + "img111.jpg"),
+        add("sweep", "vfx", "Light Sweep", A + "img95Img13201.jpg"),
+        add("haze", "vfx", "Soft Haze", A + "img95Img12451.jpg")
+      ] },
+      { id: "staging", label: "Staging", icon: ICON.armchair, items: [
+        add("st-bed", "vfx", "Bedroom", STAGE_THUMB, img(R + "bed.svg"), { tip: "Stage Bedroom", result: STAGE_RESULT, fit: "120.11px 67.147px" }),
+        add("st-living", "vfx", "Living Room", STAGE_THUMB, img(A + "imgBoldHomeFurnitureSofa2.svg"), { tip: "Stage Living Room", result: STAGE_RESULT, fit: "120.11px 67.147px" }),
+        add("st-dining", "vfx", "Dining Room", STAGE_THUMB, img(A + "imgBoldHomeFurnitureChandelier.svg"), { tip: "Stage Dining Room", result: STAGE_RESULT, fit: "120.11px 67.147px" }),
+        add("st-outdoor", "vfx", "Outdoor", STAGE_THUMB, img(A + "imgBoldHomeFurnitureSofa3.svg"), { tip: "Stage Outdoor", result: STAGE_RESULT, fit: "120.11px 67.147px" }),
+        add("st-office", "vfx", "Home Office", STAGE_THUMB, img(A + "imgBoldHomeFurnitureChair2.svg"), { tip: "Stage Home Office", result: STAGE_RESULT, fit: "120.11px 67.147px" }),
+        add("st-kitchen", "vfx", "Kitchen", STAGE_THUMB, img(A + "imgKnifeFork.svg"), { tip: "Stage Kitchen", result: STAGE_RESULT, fit: "120.11px 67.147px" })
+      ] },
+      { id: "actors", label: "Actors", icon: ICON.users, items: [
+        add("ac-couple", "actor", "Couple", A + "img1235.jpg"),
+        add("ac-family", "actor", "Family", A + "img143.jpg"),
+        add("ac-agent", "actor", "Agent", A + "img95Img12451.jpg"),
+        add("ac-buyer", "actor", "Buyer", A + "img142.jpg"),
+        add("ac-none", "actor", "No Actors", A + "img95Img12721.jpg")
+      ] },
+      { id: "startend", label: "Start/End", icon: ICON.speed, items: [
+        add("se-easein", "crop", "Ease In", A + "img111.jpg"),
+        add("se-easeout", "crop", "Ease Out", A + "img143.jpg"),
+        add("se-hold", "crop", "Hold Start", A + "img95Img13201.jpg"),
+        add("se-ramp", "crop", "Speed Ramp", A + "img95Img12691.jpg"),
+        add("se-cut", "crop", "Hard Cut", A + "img95Img12721.jpg")
+      ] },
+      { id: "camera", label: "Camera", icon: ICON.camera, items: [
+        add("cam-auto", "camera", "Auto", R + "vcam-auto.svg", null, { auto: true }),
+        add("cam-slide-l", "camera", "Slide Left", A + "img1235.jpg", ICON.slideL),
+        add("cam-orbit-l", "camera", "Orbit Left", A + "img143.jpg", ICON.orbitL),
+        add("cam-push", "camera", "Push In", A + "img111.jpg", ICON.plus),
+        add("cam-orbit-r", "camera", "Orbit Right", A + "img95Img12451.jpg", ICON.orbitR),
+        add("cam-slide-r", "camera", "Slide Right", A + "img95Img13201.jpg", ICON.slideR)
+      ] }
+    ];
+    TABS[0].items = ["starry", "st-bed", "cam-push", "golden", "cam-orbit-r"];
+    // clips with no effect of their own always get Auto camera; this is the move it picked
+    var AUTO_MOVES = ["Push In", "Orbit Right", "Slide Left", "Orbit Left", "Slide Right"];
+    // spread the picks so neighbouring Auto clips (and the duplicated second set) get different moves
+    function autoMove(i) { return AUTO_MOVES[(i + Math.floor(i / 10) * 2 + 4) % AUTO_MOVES.length]; }
+    var tabOf = {};
+    TABS.forEach(function (t) { if (t.id !== "favorites") t.items.forEach(function (id) { tabOf[id] = t.id; }); });
+    var TOOL_TAB = { crop: "startend", camera: "camera" };
+    var KINDS = ["vfx", "actor", "crop", "camera"];
+
+    /* ---------- clips (exact crops from the design) + their current effects ---------- */
+    var C = "translate(-50%,-50%)", Y = "translateY(-50%)";
+    var PH = [
+      { src: "img111",        w: 724.995, h: 405.305, x: "50%", y: "50%", t: C, fx: { vfx: "starry" } },
+      { src: "img143",        w: 609.603, h: 406.451, x: "50%", y: "50%", t: C, fx: { camera: "cam-auto" } },
+      { src: "img95Img12451", w: 633.954, h: 422.687, x: "50%", y: "50%", t: C, fx: { vfx: "st-bed" } },
+      { src: "img95Img13201", w: 620.223, h: 413.684, x: "50%", y: "50%", t: C, fx: { camera: "cam-auto" } },
+      { src: "img95Img12451", w: 617.372, h: 411.632, x: "50%", y: "50%", t: C, fx: { vfx: "st-bed" } },
+      { src: "img95Img12721", w: 609.733, h: 406.687, x: "50%", y: "50%", t: C, fx: { vfx: "st-bed" } },
+      { src: "img95Img12691", w: 620.483, h: 413.857, x: "0px", y: "50%", t: Y, fx: { vfx: "st-bed" } },
+      { src: "img95Img13201", w: 617.632, h: 411.956, x: "50%", y: "50%", t: C, fx: { camera: "cam-auto" } },
+      { src: "img95Img12691", w: 631.104, h: 420.941, x: "50%", y: "50%", t: C, fx: { camera: "cam-auto" } },
+      { src: "img95Img12691", w: 609.212, h: 406.339, x: "-388.412px", y: "50%", t: Y, fx: { vfx: "st-bed" } }
+    ];
+    // hist: earlier effects of this clip since the last Apply (for Undo); auto: selected because it changed
+    // demo: the 10 photos appear twice (20 clips), so one Apply can reach the 15-clip limit
+    PH = PH.concat(PH.map(function (p) { return Object.assign({}, p, { fx: Object.assign({}, p.fx) }); }));
+    // demo: a few clips already use a chosen camera move; the rest without an effect stay on Auto
+    PH[3].fx = { camera: "cam-slide-l" };
+    PH[7].fx = { camera: "cam-push" };
+    PH[8].fx = { camera: "cam-slide-r" };
+    var clips = PH.map(function (p) { return { p: p, fx: Object.assign({}, p.fx), base: Object.assign({}, p.fx), sel: false, hist: [], auto: false }; });
+    var cq = function (v) { return /px$/.test(v) ? (parseFloat(v) / 2.208).toFixed(3) + "cqw" : v; };
+
+    var grid = $("#grid");
+    grid.innerHTML = PH.map(function (p, i) {
+      var tools = [["crop", "Re-Crop"], ["magic", "Change VFX"], ["camera", "Change Camera"]];
+      return '<div class="cell" id="c' + i + '" data-i="' + i + '">' +
+        '<div class="card" role="checkbox" aria-checked="false" tabindex="0" aria-label="Clip ' + (i + 1) + '">' +
+          '<img class="ph" src="' + A + p.src + '.jpg" alt="" style="width:' + cq(p.w + "px") + ';height:' + cq(p.h + "px") + ';left:' + cq(p.x) + ';top:' + p.y + ';--t:' + p.t + ';transform:' + p.t + '">' +
+          '<span class="chk" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M9 16.25l4.75 4.75L23.25 11" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
+          '<span class="newchip">New</span>' +
+          '<button class="spill" type="button" tabindex="-1">' + img(R + "swap-grey.svg") + 'Swap Photo</button>' +
+          '<div class="tbar-sw"><div class="tbar">' +
+
+            '<button class="tb tb-undo" type="button" data-tool="undo" aria-label="Undo" tabindex="-1">' + ICON.undo +
+              '<span class="ttip"><b>Undo</b>' + img(A + "imgShape.svg") + '</span></button>' +
+            tools.map(function (t) {
+            return '<button class="tb" type="button" data-tool="' + t[0] + '" aria-label="' + t[1] + '">' + ICON[t[0]] +
+              '<span class="ttip"><b>' + t[1] + '</b>' + img(A + "imgShape.svg") + '</span></button>';
+          }).join("") +
+          '</div></div>' +
+        '</div>' +
+        '<span class="ctip">' + img(A + "imgShape.svg") + '<b></b></span>' +
+        '<button class="badge" type="button" aria-label="Current effect"><span class="bimg"><img alt=""><span class="cam"><img class="ci1" src="' + R + 'cam-white.svg" alt=""><img class="ci2" src="' + R + 'vcam-white.svg" alt=""><span class="ci3"></span></span></span>' +
+          '<span class="btip">' + img(A + "imgShape.svg") + '<b></b></span></button>' +
+      '</div>';
+    }).join("");
+    var cells = [].slice.call(grid.children);
+
+    var tickBox = $("#ticks");
+    tickBox.innerHTML = Array.apply(null, Array(TICKS)).map(function (_, k) { return '<i style="--i:' + k + '"></i>'; }).join("");
+    var ticks = [].slice.call(tickBox.children);
+    var modal = $("#modal"), dock = $("#dock"), frost = $("#frost"), use = $("#use"), applyBtn = $("#apply");
+    var CIRC = 2 * Math.PI * 8.1;
+
+    window.addEventListener("resize", function () { syncInd(); syncBar(); syncHind && syncHind(); });
+
+    /* ---------- custom scrollbar thumb (5 × 80 like the design) ---------- */
+    var sbar = $("#sbar");
+    function syncBar() {
+      var max = grid.scrollHeight - grid.clientHeight;
+      sbar.style.opacity = max > 0 ? 1 : 0;
+      var travel = grid.clientHeight - 30 - 30 - 80;
+      sbar.style.setProperty("--sy", (max > 0 ? grid.scrollTop / max * travel : 0) + "px");
+    }
+    grid.addEventListener("scroll", syncBar, { passive: true });
+
+    /* ---------- a clip's effect: badge thumbnail + "Name · Camera" label ---------- */
+    function primary(fx) { for (var k = 0; k < 3; k++) if (fx[KINDS[k]]) return FX[fx[KINDS[k]]]; return null; }
+    function paint(i, pop) {
+      var c = clips[i], cell = cells[i], badge = cell.querySelector(".badge"), bi = badge.querySelector(".bimg img");
+      // a swap that isn't applied yet only exists in the Swap Photo view
+      var fx = view !== "swap" && c.pend ? c.pendBase : c.fx;
+      var main = primary(fx), cam = fx.camera ? FX[fx.camera] : null;
+      var any = main || cam;
+      if (any) {
+        var src = main ? (main.result || main.thumb) : photoOf(i).src;
+        if (bi.getAttribute("src") !== src) bi.src = src;
+        var fit = main && main.fit ? main.fit.split(" ") : null;
+        bi.style.width = fit ? fit[0] : ""; bi.style.height = fit ? fit[1] : "";
+        bi.style.objectFit = fit ? "cover" : "cover";
+        badge.classList.toggle("camonly", !main);
+        var isAuto = !main && fx.camera === "cam-auto";
+        badge.classList.toggle("auto", isAuto);
+        var isMove = !main && cam && !isAuto && !!cam.icon;
+        badge.classList.toggle("move", isMove);
+        if (isMove) badge.querySelector(".ci3").innerHTML = cam.icon;
+        badge.dataset.move = isMove ? cam.id : "";
+        // name the effect itself ("Home Office"); camera moves say so ("Camera – Orbit Right", "Auto – Push In")
+        var parts = KINDS.map(function (k) {
+          if (!fx[k]) return null;
+          if (k !== "camera") return FX[fx[k]].label;
+          return fx[k] === "cam-auto" ? "Auto – " + autoMove(i) : "Camera – " + FX[fx[k]].label;
+        }).filter(Boolean);
+        var lead = main ? main : cam;
+        var ico = lead.kind === "camera" ? ICON.camera   // Auto and chosen moves: plain camera in the tooltip
+          : lead.icon ? lead.icon.replace("<img", '<img class="k"') : TABS.filter(function (t) { return t.id === tabOf[lead.id]; })[0].icon;
+        badge.querySelector(".btip b").innerHTML = ico + parts.join(" · ");
+        cell.querySelector(".ctip b").textContent = "Re-render with " + parts.join(" · ");
+        badge.setAttribute("aria-label", "Current effect: " + parts.join(", "));
+      }
+      if (!any) { badge.classList.remove("on"); cell.querySelector(".ctip b").textContent = "Re-render with no effect"; }
+      else if (!badge.classList.contains("on")) { badge.classList.add("on"); }
+      else if (pop && !reduce) { badge.classList.remove("pop"); void badge.offsetWidth; badge.classList.add("pop"); }
+    }
+
+    /* ---------- selection ---------- */
+    function selCount() { return clips.filter(function (c) { return c.sel; }).length; }
+    function room() { return LIMIT - used - selCount(); }
+    function setSel(i, on) {
+      var c = clips[i], cell = cells[i];
+      c.sel = on;
+      cell.querySelector(".chk").classList.toggle("on", on);
+      cell.classList.toggle("sel", on);
+      cell.querySelector(".card").setAttribute("aria-checked", on);
+    }
+    function toggle(i) {
+      if (used >= LIMIT) { openLimit(); return; }
+      var on = !clips[i].sel;
+      if (on && room() <= 0) { nudge("Only " + (LIMIT - used) + " re-render" + (LIMIT - used === 1 ? "" : "s") + " left on this listing"); return; }
+      setSel(i, on);
+      clips[i].auto = false;
+      // unselecting drops its unapplied effect changes: the clip goes back to what was last rendered
+      var c = clips[i];
+      if (!on && !KINDS.every(function (k) { return (c.fx[k] || "") === (c.base[k] || ""); })) {
+        c.fx = Object.assign({}, c.base); c.hist = [];
+        undoOrder = undoOrder.filter(function (k) { return k !== i; });
+        markDirty(i); paint(i, true);
+      }
+      update();
+    }
+
+    /* ---------- undo: one click back to the version that was last rendered ----------
+       It only shows while the clip's effect differs from that version; picking the original
+       effect again by hand hides it too. */
+    var undoOrder = [];
+    function sameAsBase(c) { return KINDS.every(function (k) { return (c.fx[k] || "") === (c.base[k] || ""); }); }
+    function markDirty(i) {
+      var d = !sameAsBase(clips[i]);
+      cells[i].classList.toggle("dirty", d);
+      cells[i].querySelector(".tb-undo").tabIndex = d ? 0 : -1;
+      if (!d) { clips[i].hist = []; undoOrder = undoOrder.filter(function (k) { return k !== i; }); }
+    }
+    function undo(i) {
+      var c = clips[i];
+      if (sameAsBase(c)) return;
+      c.fx = Object.assign({}, c.base);
+      paint(i, true);
+      // back where it started: drop the selection the change added
+      if (c.auto && c.sel) { setSel(i, false); c.auto = false; }
+      markDirty(i);
+      update();
+    }
+
+    /* ---------- footer: usage ring, status line, Apply count ---------- */
+    var flashTimer = null, flashText = null;
+    function nudge(text) {
+      use.classList.remove("shake"); void use.offsetWidth; if (!reduce) use.classList.add("shake");
+      if (text) flash(text);
+    }
+    function flash(text, ms) {
+      flashText = text; clearTimeout(flashTimer);
+      update();
+      flashTimer = setTimeout(function () { flashText = null; update(); }, ms || 2400);
+    }
+    function showMsg(which) {
+      ["mIdle", "mSel", "mOut"].forEach(function (id) { $("#" + id).classList.toggle("off", id !== which); });
+    }
+    function update() {
+      var n = selCount(), out = used >= LIMIT;
+      var uP = pct(used), nP = Math.min(pct(used + n), 100) - uP, left = Math.max(100 - uP - nP, 0);
+      // ring: solid arc = used, faint arc = what this re-render will use
+      var uL = Math.max(CIRC * used / LIMIT - 0.0001, 0), nL = CIRC * n / LIMIT;
+      $("#aUsed").style.strokeDasharray = uL + " " + CIRC;
+      $("#aUsed").style.opacity = used && !out ? 1 : 0;
+      $("#aNext").style.strokeDasharray = (uL + nL) + " " + CIRC;
+      $("#aNext").style.opacity = n && !out ? .38 : 0;
+      var warn = !out && pct(used + n) >= WARN;
+      use.classList.toggle("out", out);
+      use.classList.toggle("warn", warn);
+      modal.classList.toggle("out", out);
+      modal.classList.toggle("full", !out && n > 0 && used + n >= LIMIT);
+
+      // status line
+      if (out) showMsg("mOut");
+      else if (flashText) { $("#mSel").textContent = flashText; showMsg("mSel"); }
+      else if (n) { $("#mSel").textContent = n + " clip" + (n === 1 ? "" : "s") + " selected for re-render"; showMsg("mSel"); }
+      else if (warn) { $("#mSel").textContent = "Almost at your limit. " + (LIMIT - used) + " re-render" + (LIMIT - used === 1 ? "" : "s") + " left on this listing"; showMsg("mSel"); }
+      else showMsg("mIdle");
+
+      // hover card
+      var shown = out ? 100 : uP;
+      $("#mtPct").textContent = shown + "%";
+      var tu = out ? TICKS : Math.round(used / LIMIT * TICKS), tn = out ? 0 : Math.round(Math.min(used + n, LIMIT) / LIMIT * TICKS) - tu;
+      ticks.forEach(function (t, k) { t.className = k < tu ? "u" : k < tu + tn ? "n" : ""; });
+      $("#mtCount").textContent = Math.min(used, LIMIT) + " of " + LIMIT + " re-renders used";
+      var d = $("#mtDelta");
+      d.textContent = out ? "Limit reached" : n ? "+" + n + " selected" : (LIMIT - used) + " left";
+      d.classList.toggle("up", !!n && !out);
+      $("#useBtn").setAttribute("aria-label", (out ? 100 : uP) + "% of this listing's re-renders used");
+
+      // Apply + purple count
+      var sp = pendingSwaps(), ap = view === "swap" ? sp : n;
+      $("#swN").textContent = (swapsLeft - sp) + " Swap" + (swapsLeft - sp === 1 ? "" : "s") + " Available";
+      $("#limSw").textContent = swapsLeft + " swap" + (swapsLeft === 1 ? "" : "s") + " available";
+      var cnt = $("#cnt"), was = +cnt.textContent;
+      n = ap;
+      applyBtn.setAttribute("aria-disabled", !ap || busy || (view !== "swap" && out));
+      cnt.textContent = n;
+      cnt.classList.toggle("on", n > 0);
+      if (n && was && n !== was && !reduce) { cnt.classList.remove("bump"); void cnt.offsetWidth; cnt.classList.add("bump"); }
+    }
+
+    /* ---------- grid interactions ---------- */
+    grid.addEventListener("click", function (e) {
+      var cell = e.target.closest(".cell"); if (!cell) return;
+      var i = +cell.dataset.i;
+      if (view === "swap") {
+        var st = e.target.closest(".tb");
+        if (st) {
+          if (st.dataset.tool === "undo") return undoSwap(i);
+          var stab = TOOL_TAB[st.dataset.tool];
+          if (st.dataset.tool === "magic") { var sv = clips[i].fx.vfx || clips[i].fx.actor; stab = sv ? tabOf[sv] : "transitions"; }
+          return openDock(stab, i);
+        }
+        if (e.target.closest(".badge")) { var sm = primary(clips[i].fx) || FX[clips[i].fx.camera]; return openDock(sm ? tabOf[sm.id] : "transitions", i); }
+        if (e.target.closest(".spill")) pickPhoto(i);
+        return;
+      }
+      var tb = e.target.closest(".tb");
+      if (tb) {
+        if (used >= LIMIT) return openLimit();
+        var tool = tb.dataset.tool, tab = TOOL_TAB[tool];
+        if (tool === "undo") return undo(i);
+        if (tool === "magic") { var v = clips[i].fx.vfx || clips[i].fx.actor; tab = v ? tabOf[v] : "transitions"; }
+        return openDock(tab, i);
+      }
+      if (e.target.closest(".badge")) {
+        if (used >= LIMIT) return openLimit();
+        var m = primary(clips[i].fx) || FX[clips[i].fx.camera];
+        return openDock(m ? tabOf[m.id] : "transitions", i);
+      }
+      if (e.target.closest(".card")) toggle(i);
+    });
+    grid.addEventListener("keydown", function (e) {
+      if ((e.key === " " || e.key === "Enter") && e.target.classList.contains("card")) {
+        e.preventDefault();
+        var k = +e.target.closest(".cell").dataset.i;
+        if (view === "swap") pickPhoto(k); else toggle(k);
+      }
+    });
+
+    /* ---------- dock ---------- */
+    var tabsEl = $("#tabs"), ind = $("#ind"), opts = $("#opts"), curTab = null, editing = -1;
+    tabsEl.insertAdjacentHTML("beforeend", TABS.map(function (t) {
+      return '<button class="tab" type="button" role="tab" data-tab="' + t.id + '">' + t.icon + t.label + "</button>";
+    }).join(""));
+    tabsEl.addEventListener("click", function (e) { var b = e.target.closest(".tab"); if (b && b.dataset.tab !== curTab.id) selectTab(b.dataset.tab, true); });
+    function syncInd() {
+      var b = tabsEl.querySelector(".tab.on"); if (!b) return;
+      ind.style.setProperty("--ix", b.offsetLeft + "px");
+      ind.style.setProperty("--iw", b.offsetWidth + "px");
+    }
+    function selectTab(id, animate) {
+      curTab = TABS.filter(function (t) { return t.id === id; })[0];
+      each(tabsEl.querySelectorAll(".tab"), function (b) {
+        var on = b.dataset.tab === id; b.classList.toggle("on", on); b.setAttribute("aria-selected", on);
+      });
+      syncInd();
+      var render = function () {
+        var fx = clips[editing].fx;
+        opts.innerHTML = curTab.items.map(function (id, i) {
+          // Auto counts as the current camera whenever no move was chosen (it's applied on the backend anyway)
+          var it = FX[id], cur = it.auto ? (!fx.camera || fx.camera === "cam-auto") : fx[it.kind] === id;
+          var parent = TABS.filter(function (t) { return t.id === tabOf[id]; })[0];
+          var note = parent.note ? '<span class="note">' + parent.note + '</span>' : "";
+          // current effect: dark label (no tag), and "Remove" on its image on hover. Auto keeps its
+          // "Current" tag and has no Remove: it can only be replaced.
+          var tag = cur ? '<span class="cur">Current</span>' : "";
+          if (cur && !it.auto) note = '<span class="note rm">' + ICON.trash + 'Remove</span>';
+          var body = it.auto ? '<span>' + img(it.thumb) + '<b>Auto</b></span>' : img(it.thumb) + note;
+          return '<button class="opt' + (it.auto ? " auto" : "") + (cur ? " iscur" : "") + '" type="button" data-id="' + id + '"' + (it.auto ? ' aria-disabled="true"' : "") + ' style="animation-delay:' + (i * 40) + 'ms"' +
+            ' aria-label="' + (cur && !it.auto ? "Remove " : "") + (it.tip || it.label) + (cur && it.auto ? ", current" : "") + '">' +
+            '<span class="opt-h">' + (it.icon || parent.icon) + it.label + tag + '</span>' +
+            '<span class="opt-i">' + body + '</span></button>';
+        }).join("");
+        opts.scrollLeft = 0;
+        opts.classList.remove("stagger"); void opts.offsetWidth; opts.classList.add("stagger");
+        opts.classList.remove("swap");
+      };
+      if (animate && !reduce) { opts.classList.add("swap"); setTimeout(render, 120); } else render();
+    }
+    opts.addEventListener("click", function (e) {
+      var o = e.target.closest(".opt"); if (!o || opts.dataset.lock) return;
+      // Auto is informational: the backend applies it to clips without a move, so it can't be picked
+      if (o.classList.contains("auto")) return;
+      opts.dataset.lock = "1";
+      o.classList.add(o.classList.contains("iscur") && !o.classList.contains("auto") ? "drop" : "pick");
+      var id = o.dataset.id;
+      setTimeout(function () { choose(id); }, reduce ? 80 : 300);
+    });
+
+    function openDock(tab, i) {
+      editing = i;
+      cells.forEach(function (c, k) { c.classList.toggle("lit", k === i); });
+      // bring the clip being edited into the strip above the dock
+      var top = cells[i].offsetTop - 20;
+      grid.scrollTo({ top: top, behavior: reduce ? "auto" : "smooth" });
+      modal.classList.add("docked");
+      delete opts.dataset.lock;
+      ind.classList.add("noanim");
+      selectTab(tab, false);
+      dock.inert = false;
+      dock.classList.add("show");
+      requestAnimationFrame(function () { syncInd(); requestAnimationFrame(function () { ind.classList.remove("noanim"); }); });
+      setTimeout(function () { var t = tabsEl.querySelector(".tab.on"); t && t.focus({ preventScroll: true }); }, 60);
+    }
+    function closeDock() {
+      if (editing < 0) return;
+      var cell = cells[editing];
+      dock.classList.remove("show");
+      dock.inert = true;
+      modal.classList.remove("docked");
+      setTimeout(function () { cell.classList.remove("lit"); }, reduce ? 0 : 300);
+      editing = -1;
+    }
+    // Picking an effect replaces the clip's effect; picking the one already on it removes it.
+    // Any change marks the clip for re-render automatically.
+    // a clip carries one effect: picking another replaces it, picking the same one removes it
+    function setFx(i, it) {
+      var had = clips[i].fx[it.kind] === it.id;
+      clips[i].fx = {};
+      if (!had) clips[i].fx[it.kind] = it.id;
+    }
+    function choose(id) {
+      var i = editing, it = FX[id];
+      // Auto is already on: nothing to change (it can only be replaced)
+      if (it.auto) { closeDock(); return; }   // never set by hand (see the click handler)
+      if (view === "swap") {
+        setFx(i, it);
+        closeDock();
+        setTimeout(function () { paint(i, true); update(); }, reduce ? 0 : 160);
+        return;
+      }
+      clips[i].hist.push(Object.assign({}, clips[i].fx));
+      undoOrder.push(i);
+      setFx(i, it);
+      closeDock();
+      setTimeout(function () {
+        paint(i, true);
+        markDirty(i);
+        var c = clips[i];
+        // back to exactly what was last rendered: nothing to re-render, so drop the auto-selection
+        if (c.sel && c.auto && KINDS.every(function (k) { return (c.fx[k] || "") === (c.base[k] || ""); })) { setSel(i, false); c.auto = false; update(); return; }
+        if (!clips[i].sel) {
+          if (room() > 0) { setSel(i, true); clips[i].auto = true; update(); }
+          else flash("Effect saved. No re-renders left to include this clip", 3000);
+        } else update();
+      }, reduce ? 0 : 160);
+    }
+    frost.addEventListener("click", closeDock);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && document.body.classList.contains("lim-on")) { closeLimit(); return; }
+      if (e.key === "Escape" && editing > -1) { closeDock(); return; }
+      if (e.key === "Escape" && !modal.classList.contains("closed")) { discardAll(); closeModal(); return; }
+      // ⌘Z / Ctrl+Z undoes the most recent change on any clip
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === "z" && editing < 0 && undoOrder.length && used < LIMIT) {
+        e.preventDefault(); undo(undoOrder[undoOrder.length - 1]);
+      }
+    });
+
+    /* ---------- Apply / Cancel ---------- */
+    var busy = false;
+    applyBtn.addEventListener("click", function () {
+      if (view === "swap") return applySwaps();
+      var n = selCount();
+      if (!n || busy || used >= LIMIT) { if (!n && used < LIMIT) nudge(); return; }
+      busy = true;
+      applyBtn.classList.add("busy"); $("#applyL").textContent = "Applying";
+      update();
+      setTimeout(function () {
+        busy = false;
+        used += n;
+        clips.forEach(function (c, i) {
+          if (!c.sel) return;
+          c.base = Object.assign({}, c.fx); c.hist = []; c.auto = false; setSel(i, false); markDirty(i);
+          undoOrder = undoOrder.filter(function (k) { return k !== i; });
+        });
+        applyBtn.classList.remove("busy"); $("#applyL").textContent = "Apply All Changes";
+        if (used < LIMIT) flash(n + " clip" + (n === 1 ? "" : "s") + " sent for re-render", 2600);
+        else update();
+        // the usage card shows the new share; at 100% the swap dialog follows once it closes
+        use.classList.add("peek");
+        setTimeout(function () {
+          use.classList.remove("peek");
+          if (used >= LIMIT) setTimeout(openLimit, reduce ? 0 : 220);
+        }, reduce ? 1200 : 2400);
+      }, reduce ? 300 : 1300);
+    });
+    /* ---------- open from the share page's Edit All; Cancel discards and goes back ---------- */
+    var lastFocus = null;
+    function openModal() {
+      if (!modal.classList.contains("closed")) return;
+      lastFocus = document.activeElement;
+      modal.inert = false;
+      $("#scrim").classList.remove("off");
+      modal.classList.remove("closed");
+      requestAnimationFrame(function () { syncInd(); syncBar(); syncHind(); });
+    }
+    function closeModal() {
+      if (editing > -1) closeDock();
+      if (document.body.classList.contains("lim-on")) closeLimit();
+      modal.classList.add("closed");
+      modal.inert = true;
+      $("#scrim").classList.add("off");
+      if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+    }
+    function discardAll() {
+      if (pendingSwaps()) revertSwaps();
+      // effects go back to what was last rendered, nothing stays selected
+      clips.forEach(function (c, i) {
+        var changed = !KINDS.every(function (k) { return (c.fx[k] || "") === (c.base[k] || ""); });
+        c.fx = Object.assign({}, c.base); setSel(i, false);
+        c.hist = []; c.auto = false; markDirty(i);
+        if (changed) paint(i, false);
+      });
+      undoOrder = []; flashText = null; clearTimeout(flashTimer);
+      update();
+    }
+    $("#cancel").addEventListener("click", function () { discardAll(); closeModal(); });
+    window.addEventListener("message", function (e) {
+      if (e.source === $("#base").contentWindow && e.data && e.data.type === "reelty:edit-all") openModal();
+    });
+
+    /* ---------- views: Re-Render ⇄ Swap Photo (header pill slides) ---------- */
+    var htabs = $(".htabs"), hind = $("#hind");
+    function syncHind() {
+      var b = htabs.querySelector(".htab.on"); if (!b) return;
+      hind.style.setProperty("--ix", b.offsetLeft + "px");
+      hind.style.setProperty("--iw", b.offsetWidth + "px");
+    }
+    function setView(v) {
+      if (v === view) return;
+      if (editing > -1) closeDock();
+      each(htabs.querySelectorAll(".htab"), function (b) {
+        var on = b.dataset.view === v; b.classList.toggle("on", on);
+        if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+      });
+      syncHind();
+      var swap = function () {
+        view = v; modal.dataset.view = v;
+        clips.forEach(function (c, i) { showPhoto(i); paint(i, false); cells[i].querySelector(".tb-undo").tabIndex = (v === "swap" ? c.shist.length : c.hist.length) ? 0 : -1; });
+        each(grid.querySelectorAll(".spill"), function (b) { b.tabIndex = v === "swap" ? 0 : -1; });
+        flashText = null; clearTimeout(flashTimer);
+        update(); grid.classList.remove("fade");
+      };
+      if (reduce) swap(); else { grid.classList.add("fade"); setTimeout(swap, 160); }
+    }
+    htabs.addEventListener("click", function (e) { var b = e.target.closest(".htab[data-view]"); if (b) setView(b.dataset.view); });
+    $("#goSwap").addEventListener("click", function () { setView("swap"); });
+    $("#getMore").addEventListener("click", function (e) { e.preventDefault(); });
+
+    /* ---------- swaps: upload any photo (even the same one) into a clip ----------
+       c.cur  = the photo the clip renders with (shown everywhere)
+       c.pend = a swapped photo waiting for Apply (shown only in Swap Photo) */
+    var fileIn = $("#file"), swapTarget = -1, COVER = "left:0;top:0;width:100%;height:100%;object-fit:cover;--t:none;transform:none";
+    clips.forEach(function (c, i) { var ph = cells[i].querySelector(".ph"); c.cur = { src: ph.getAttribute("src"), style: ph.getAttribute("style") }; c.shist = []; });
+    function photoOf(i) { var c = clips[i]; return view === "swap" && c.pend ? { src: c.pend, style: COVER } : c.cur; }
+    function showPhoto(i) {
+      var ph = cells[i].querySelector(".ph"), p = photoOf(i);
+      if (ph.getAttribute("src") !== p.src) ph.src = p.src;
+      if (ph.getAttribute("style") !== p.style) ph.setAttribute("style", p.style);
+    }
+    function pendingSwaps() { return clips.filter(function (c) { return c.pend; }).length; }
+    function pickPhoto(i) {
+      if (!clips[i].pend && swapsLeft - pendingSwaps() <= 0) {
+        var si = $("#swapInfo"); si.classList.remove("shake"); void si.offsetWidth; if (!reduce) si.classList.add("shake");
+        return;
+      }
+      swapTarget = i; fileIn.value = ""; fileIn.click();
+    }
+    // new photo lands with a "New" tag; hovering it offers the effect tools (no panel pops open)
+    // a swapped photo starts clean: no effect carried over from the old one
+    fileIn.addEventListener("change", function () {
+      var f = fileIn.files && fileIn.files[0], i = swapTarget;
+      if (!f || i < 0) return;
+      var c = clips[i];
+      if (!c.pend) c.pendBase = Object.assign({}, c.fx);
+      c.shist.push({ pend: c.pend, fx: Object.assign({}, c.fx) });
+      c.pend = URL.createObjectURL(f);
+      c.fx = { camera: "cam-auto" };
+      cells[i].classList.add("swapped");
+      markSwapDirty(i);
+      showPhoto(i); paint(i, false);
+      update();
+    });
+    function markSwapDirty(i) {
+      var d = clips[i].shist.length > 0;
+      cells[i].classList.toggle("sdirty", d);
+      if (view === "swap") cells[i].querySelector(".tb-undo").tabIndex = d ? 0 : -1;
+    }
+    // undo: straight back to the old photo with its old effects, whatever was added since
+    function undoSwap(i) {
+      var c = clips[i];
+      if (!c.pend) return;
+      URL.revokeObjectURL(c.pend);
+      c.pend = null; c.shist = []; c.fx = Object.assign({}, c.pendBase);
+      cells[i].classList.remove("swapped");
+      markSwapDirty(i);
+      showPhoto(i); paint(i, true);
+      update();
+    }
+    function revertSwaps() {
+      clips.forEach(function (c, i) {
+        if (!c.pend) return;
+        URL.revokeObjectURL(c.pend); c.pend = null; c.shist = []; markSwapDirty(i);
+        c.fx = Object.assign({}, c.pendBase);
+        cells[i].classList.remove("swapped");
+        showPhoto(i); paint(i, false);
+      });
+      update();
+    }
+    function applySwaps() {
+      var n = pendingSwaps();
+      if (!n || busy) return;
+      busy = true; applyBtn.classList.add("busy"); $("#applyL").textContent = "Applying"; update();
+      setTimeout(function () {
+        busy = false; swapsLeft -= n;
+        clips.forEach(function (c, i) {
+          if (!c.pend) return;
+          c.cur = { src: c.pend, style: COVER }; c.pend = null; c.shist = []; markSwapDirty(i);
+          c.base = Object.assign({}, c.fx); c.hist = []; markDirty(i);
+          cells[i].classList.remove("swapped");
+          showPhoto(i); paint(i, false);
+        });
+        applyBtn.classList.remove("busy"); $("#applyL").textContent = "Apply All Changes";
+        update();
+      }, reduce ? 300 : 1300);
+    }
+
+    /* ---------- limit dialog: shown right after the last re-render is used ---------- */
+    var lim = $("#lim"), limLast = null;
+    function openLimit() {
+      if (document.body.classList.contains("lim-on")) return;
+      if (editing > -1) closeDock();
+      limLast = document.activeElement;
+      // usage card under the title ring: a copy of the footer one, without ids
+      var mt = $("#limMeter");
+      mt.innerHTML = $("#meter").innerHTML;
+      each(mt.querySelectorAll("[id]"), function (el) { el.removeAttribute("id"); });
+      lim.inert = false;
+      document.body.classList.add("lim-on");
+      setTimeout(function () { $("#limX").focus({ preventScroll: true }); }, 60);
+    }
+    function closeLimit() {
+      document.body.classList.remove("lim-on");
+      lim.inert = true;
+      if (limLast && limLast.focus) limLast.focus({ preventScroll: true });
+    }
+    $("#limX").addEventListener("click", closeLimit);
+    $("#limScrim").addEventListener("click", closeLimit);
+    $("#limCard").addEventListener("click", function () { closeLimit(); setView("swap"); });
+
+    /* ---------- start ---------- */
+    dock.inert = true;
+    clips.forEach(function (c, i) { paint(i, false); });
+    $("#winDays").textContent = daysLeft + " more day" + (daysLeft === 1 ? "" : "s");
+    modal.dataset.view = "render";
+    syncReset(); setInterval(syncReset, 30000);
+    update();
+    syncInd();
+    syncBar();
+    syncHind();
+    requestAnimationFrame(function () { hind.classList.remove("noanim"); });
+    // the re-render window opens on load; Cancel goes back to the share page, Edit All reopens it
+    requestAnimationFrame(function () {
+      modal.classList.add("ready");
+      requestAnimationFrame(function () { modal.classList.remove("enter"); });
+    });
+  })();
+  </script>
+</body>
+</html>
