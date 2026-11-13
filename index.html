@@ -509,6 +509,137 @@
     @keyframes opt-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
     .opts.stagger .opt { animation: opt-in .32s var(--ease-out) both; }
 
+    /* =====================================================================
+       Mobile (≤ 640px). Desktop is untouched: these pieces stay hidden above it.
+       No hover on touch, so every clip shows its effect thumbnail and a "Change Effect" pill,
+       and the usage ring becomes an always-visible line + bar you can tap for the full card.
+       ===================================================================== */
+    .cfx-w { display: none; }
+    @media (max-width: 640px) {
+      .modal, .modal.enter, .modal.closed { inset: 0; border-radius: 0; }
+      .m-head { height: 64px; padding: 10px 12px; }
+      .htabs { height: 44px; }
+      .hind { height: 36px; }
+      .htab { padding: 8px 14px; font-size: 15px; }
+      .htab img, .htab svg { width: 18px; height: 18px; }
+      /* grid panel: open at the bottom (no rounded frame line above the footer) */
+      .m-body { border-radius: 20px 20px 0 0; box-shadow: none; }
+      .m-grid { padding: 12px; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .sbar { display: none; }
+
+      .chk { left: 10px; top: 10px; }
+      .badge { right: 10px; top: 10px; padding: 2px; border-radius: 12px; }
+      .bimg { width: 52px; height: 52px; border-radius: 9px; }
+      .bimg .cam img, .bimg .cam .ci3, .bimg .cam .ci3 svg, .bimg .cam .ci3 img { width: 22px; height: 22px; }
+      .btip, .ctip, .tbar-sw { display: none !important; }
+      /* no hover: thumbnails always shown (except where the limit hides them) */
+      .modal:not([data-view="swap"]) .cell:not(.sel):not(:hover):not(.lit):not(:has(:focus-visible)) .badge.on { opacity: 1; transform: none; pointer-events: auto; }
+      .modal:not(.out):not(.full):not([data-view="swap"]) .cell:not(.sel) .card { opacity: 1; }
+
+      /* the one action per clip, like the upload screen ("Add Effect" there) */
+      .cfx-w { position: absolute; left: 50%; bottom: 12px; z-index: 3; transform: translateX(-50%); display: flex; align-items: center; padding: 2px; background: #fff; border: 1px solid #f8f8f8; border-radius: 10px; box-shadow: var(--pop-shadow); }
+      .cfx { display: flex; align-items: center; gap: 5px; padding: 8px 10px; border-radius: 8px; font-size: 13px; line-height: 16px; color: #17191b; white-space: nowrap; }
+      .cfx svg { width: 15px; height: 15px; flex: none; }
+      .cfx:active { background: #f6f6f6; }
+      .modal.out:not([data-view="swap"]) .cfx-w,
+      .modal.full:not([data-view="swap"]) .cell:not(.sel) .cfx-w,
+      .modal.docked .cell.lit .cfx-w { opacity: 0; pointer-events: none; }
+      .modal[data-view="swap"] .cfx-w { display: none; }
+      .modal[data-view="swap"] .cell.swapped .cfx-w { display: flex; }
+      .spill { bottom: 12px; padding: 8px 10px; font-size: 13px; }
+      .modal[data-view="swap"] .spill { opacity: 1; transform: translate(-50%, 0); }
+
+      /* footer: usage line on top, the two buttons full width under it */
+      .m-cta { height: auto; flex-direction: column; align-items: stretch; gap: 10px; padding: 10px 16px calc(14px + env(safe-area-inset-bottom)); }
+      .cta-l { width: 100%; gap: 12px; }
+      .use { flex: 1; min-width: 0; }
+      /* same ring + text as desktop; the line may wrap on narrow screens */
+      .use-btn { height: auto; min-height: 32px; cursor: pointer; }
+      .msg { white-space: normal; font-size: 13px; line-height: 16px; }
+      /* tap the ring: its card opens over a white veil so it reads clearly */
+      .modal::after { content: ""; position: absolute; inset: 0; z-index: 40; background: rgba(255, 255, 255, .78); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s var(--ease-out); }
+      .modal:has(.use.peek)::after { opacity: 1; pointer-events: auto; }
+      .modal:has(.use.peek) .m-cta { position: relative; z-index: 41; }
+      .m-cta > *, .cta-l > * { transition: opacity .2s var(--ease-out); }
+      .modal:has(.use.peek) .m-btns, .modal:has(.use.peek) #goSwap { opacity: .25; pointer-events: none; }
+      /* phones: a tap leaves a sticky :hover / focus on the ring, so the card follows only the tap state (.peek),
+         and closes together with the white overlay */
+      .use:hover .meter, .use:has(:focus-visible) .meter { opacity: 0; transform: translateY(4px) scale(.98); transition: opacity .14s var(--ease-out), transform .14s var(--ease-out); }
+      .use.peek .meter, .use.peek:hover .meter { opacity: 1; transform: none; transition: opacity .2s var(--ease-out), transform .24s var(--ease-out); }
+      .meter { left: 0; width: min(304px, calc(100vw - 32px)); }
+      .meter > .arr { left: 0; }
+      .m-btns { gap: 12px; }
+      .m-btns .btn { flex: 1; justify-content: center; height: 52px; padding: 0 14px; font-size: 16px; white-space: nowrap; border-radius: 14px; }
+      .m-btns .btn-ghost { flex: 0 0 34%; }
+      .swapinfo, .swapinfo .m-link { font-size: 14px; }
+
+      /* effect sheet (Figma 96:3570): a white blur over the whole screen, the clip being edited stays crisp in a white frame */
+      .frost { position: fixed; inset: 0; border-radius: 0; background: rgba(255, 255, 255, .9); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
+      .modal.docked .cell.lit .card { box-shadow: 0 0 0 4px #fff; }
+      .dock { left: 0; right: 0; bottom: -40px; top: auto; height: calc(min(554px, 100dvh - 120px) + 40px); display: flex; flex-direction: column; background: #fbfbfb; border: 0; border-radius: 20px 20px 0 0;
+        box-shadow: 0 -93px 18.5px rgba(0,0,0,.01), 0 -6px 6.5px rgba(0,0,0,.05);
+        opacity: 1; transform: translateY(calc(100% + 24px)); transition: transform .3s var(--ease-drawer); }
+      .dock.show { transform: none; transition: transform .5s var(--ease-drawer); }
+      .dock::before { content: ""; position: absolute; left: 50%; top: 5.5px; width: 60px; height: 4px; margin-left: -30px; border-radius: 20px; background: #e9e9e9; z-index: 1; }
+      .dock-top { flex: none; height: auto; padding: 20px 16px; }
+      .tabs { min-width: 0; height: auto; padding: 4px; border-radius: 12px; overflow-x: auto; scrollbar-width: none; }
+      .tabs::-webkit-scrollbar { display: none; }
+      .tabs .ind { top: 4px; height: 36px; }
+      .tab { flex: none; white-space: nowrap; padding: 8px 12px; font-size: 16px; }
+      .dock-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; overscroll-behavior: contain; padding: 16px 12px calc(56px + env(safe-area-inset-bottom)); border: 0; border-radius: 20px 20px 0 0; }
+      /* Style Settings sits in the white panel (moved there by script on phones) */
+      .dock-body .style-btn { flex: none; width: 100%; height: auto; justify-content: center; padding: 10px 12px; border-radius: 10px; filter: drop-shadow(0 1px .5px rgba(0,0,0,.06)); }
+      .opts { flex: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; overflow: visible; padding-bottom: 0; }
+      .opt { width: auto; padding: 8px; gap: 8px; border-width: .738px; border-radius: 16px; }
+      .opt.iscur { padding: 7px; }
+      .opt-h { gap: 4px; font-size: 13px; line-height: 16px; }
+      .opt-h img, .opt-h svg { width: 14px; height: 14px; }
+      .opt-h .cur { font-size: 10px; line-height: 12px; padding: 2px 5px; }
+      .opt-i { width: 100%; height: 176px; border-radius: 10px; }
+      .opt.auto .opt-i img { width: 36px; height: 36px; }
+      .opt.auto .opt-i b { font-size: 18px; line-height: 24px; }
+      /* Start/End: start frame first, then the end-frame choices, 3 per row */
+      .opts.se { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 8px; }
+      .se-plus { display: none; }
+      .se-start { width: auto; height: auto; aspect-ratio: 116 / 216; margin: 0; }
+      .opt.se-o { padding: 5px; }
+      .opt.se-o .opt-i { width: 100%; height: auto; aspect-ratio: 116 / 216; }
+
+      /* limit sheet (Figma 97:3935): dark blurred overlay; grey header (title + X) stays put,
+         the white panel under it scrolls; Swap Photo comes first, then Re-render */
+      .lim-scrim { background: rgba(63, 63, 63, .5); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
+      .lim { left: 0; right: 0; top: auto; bottom: -40px; width: 100%; height: auto; max-height: calc(100dvh - 16px + 40px); overflow: hidden; display: flex; flex-direction: column;
+        background: #fbfbfb; border: 0; border-radius: 20px 20px 0 0;
+        box-shadow: 0 -93px 18.5px rgba(0,0,0,.01), 0 -6px 6.5px rgba(0,0,0,.05);
+        opacity: 1; transform: translateY(calc(100% + 24px)); transition: transform .3s var(--ease-drawer); }
+      body.lim-on .lim { transform: none; transition: transform .5s var(--ease-drawer); }
+      .lim::before { content: ""; position: absolute; left: 50%; top: 5.5px; width: 60px; height: 4px; margin-left: -30px; border-radius: 20px; background: #e9e9e9; z-index: 3; }
+      .lim-h { flex: none; padding: 20px; }
+      .lim-h h2 { font-size: 14px; line-height: 20px; }
+      .lim-h h2 svg { width: 24px; height: 24px; }
+      .lim-x { width: 30px; height: 30px; border-radius: 7.5px; border-width: .75px; box-shadow: 0 .75px .75px rgba(0,0,0,.1); }
+      .lim-x img { width: 15px; height: 15px; }
+      .lim-b { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; padding: 16px 16px calc(56px + env(safe-area-inset-bottom)); gap: 16px;
+        background: #fff; box-shadow: none; border: 0; border-radius: 20px 20px 0 0; }
+      .lim-b > p { padding: 0 12px; font-size: 12px; line-height: 18px; letter-spacing: -.072px; }
+      .lim-cards { flex-direction: column; flex-wrap: nowrap; gap: 12px; }
+      .lc, .lc-wrap { flex: none; }
+      .lim-b::-webkit-scrollbar { display: none; }
+      .lc-wrap { order: -1; padding: 5px; border-radius: 25px; }
+      .lc-wrap::before { inset: 0; border-radius: 25px; }
+      .lc-art { height: 120px; }
+      .lc-txt { gap: 10px; padding: 12px; }
+      .lc-t { font-size: 16px; line-height: 20px; letter-spacing: -.096px; }
+      .lc:not(.hot) .lc-t img { width: 16px; height: 16px; }
+      .lc-txt h3, .lc-txt .h3 { font-size: 14px; line-height: 18px; }
+      .lc-txt p, .lc-txt .p { font-size: 12px; line-height: 20px; max-width: 300px; }
+      .ph-a { top: 27px; }
+      .sw-ph { top: 20px; }
+      .sw-ring { top: 33.5px; }
+      .sw-ln { top: 60px; }
+      .sw-btn { top: calc(50% - 6px); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .dock, .dock.show, .tbar-sw, .modal.enter, .modal.closed, .badge, .meter, .cnt, .lim, body.lim-on .lim { transform: translate(-50%, -50%) !important; }
       .dock, .dock.show, .tbar-sw, .modal.enter, .modal.closed, .badge, .meter, .cnt { transform: none !important; }
@@ -519,6 +650,10 @@
       .badge.pop, .cnt.bump, .use.shake, .opts.stagger .opt { animation: none; }
       .chk svg path { transition: none !important; }
       .card:hover .ph { transform: var(--t, none) !important; }
+    }
+    @media (prefers-reduced-motion: reduce) and (max-width: 640px) {
+      .lim, body.lim-on .lim, .dock, .dock.show { transform: none !important; transition: opacity .15s linear !important; }
+      .lim, .dock { opacity: 0; } body.lim-on .lim, .dock.show { opacity: 1; }
     }
   </style>
 </head>
@@ -811,6 +946,8 @@
               '<span class="ttip"><b>' + t[1] + '</b>' + img(A + "imgShape.svg") + '</span></button>';
           }).join("") +
           '</div></div>' +
+          // mobile only (no hover): one always-visible pill opens the effects
+          '<div class="cfx-w"><button class="cfx" type="button">' + ICON.magic + 'Change Effect</button></div>' +
         '</div>' +
         '<span class="ctip">' + img(A + "imgShape.svg") + '<b></b></span>' +
         '<button class="badge" type="button" aria-label="Current effect"><span class="bimg"><img alt=""><span class="se2"><img alt=""></span><span class="cam"><img class="ci1" src="' + R + 'cam-white.svg" alt=""><img class="ci2" src="' + R + 'vcam-white.svg" alt=""><span class="ci3"></span></span></span>' +
@@ -999,6 +1136,12 @@
     grid.addEventListener("click", function (e) {
       var cell = e.target.closest(".cell"); if (!cell) return;
       var i = +cell.dataset.i;
+      // mobile "Change Effect" pill: opens the dock on the clip's current effect (Auto camera when it has none)
+      if (e.target.closest(".cfx")) {
+        if (view !== "swap" && used >= LIMIT) return openLimit();
+        var cm = primary(clips[i].fx) || FX[clips[i].fx.camera];
+        return openDock(cm ? tabOf[cm.id] : "transitions", i);
+      }
       if (view === "swap") {
         var st = e.target.closest(".tb");
         if (st) {
@@ -1247,6 +1390,9 @@
         if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
       });
       syncHind();
+      // phones: the tab row scrolls, so keep the active tab in view
+      var onT = htabs.querySelector(".htab.on");
+      if (onT && htabs.scrollWidth > htabs.clientWidth) htabs.scrollTo({ left: onT.offsetLeft - 12, behavior: reduce ? "auto" : "smooth" });
       var swap = function () {
         view = v; modal.dataset.view = v;
         clips.forEach(function (c, i) { showPhoto(i); paint(i, false); cells[i].querySelector(".tb-undo").tabIndex = (v === "swap" ? c.shist.length : c.hist.length) ? 0 : -1; });
@@ -1360,6 +1506,20 @@
     $("#limX").addEventListener("click", closeLimit);
     $("#limScrim").addEventListener("click", closeLimit);
     $("#limCard").addEventListener("click", function () { closeLimit(); setView("swap"); });
+
+    /* ---------- mobile: no hover, so the usage card opens on tap and closes on any tap outside ---------- */
+    var phone = window.matchMedia("(max-width: 640px)");
+    // phones: tap shows the usage card, which closes itself after the same 2.4s as after Apply (tap again to close sooner)
+    var peekTimer = null;
+    $("#useBtn").addEventListener("click", function () {
+      if (!phone.matches) return;
+      clearTimeout(peekTimer);
+      if (use.classList.toggle("peek")) peekTimer = setTimeout(function () { use.classList.remove("peek"); }, reduce ? 1200 : 2400);
+    });
+    // phones: Style Settings lives in the white panel above the options (as in the Figma sheet)
+    function placeStyle() { var sb = $(".style-btn"); if (phone.matches) $(".dock-body").insertBefore(sb, opts); else $(".dock-top").appendChild(sb); }
+    phone.addEventListener("change", placeStyle); placeStyle();
+    document.addEventListener("click", function (e) { if (!e.target.closest("#use")) use.classList.remove("peek"); });
 
     /* ---------- start ---------- */
     dock.inert = true;
